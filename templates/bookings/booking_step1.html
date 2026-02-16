@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Book Appointment - Step 1{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step active">
+            <div class="step-number">1</div>
+            <span>Select</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <span>Date & Time</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <span>Confirm</span>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="text-center mb-4">Book Your Appointment</h2>
+                    
+                    <form method="post" id="booking-form">
+                        {% csrf_token %}
+                        
+                        <!-- Select Counselor -->
+                        <h4 class="mb-3"><i class="bi bi-person-check text-primary me-2"></i>Choose a Counselor</h4>
+                        <div class="row g-3 mb-5" id="counselor-selection">
+                            {% for counselor in counselors %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card counselor-card h-100 p-3" data-counselor-id="{{ counselor.id }}">
+                                    <div class="card-body text-center">
+                                        {% if counselor.photo %}
+                                        <img src="{{ counselor.photo.url }}" alt="{{ counselor.full_name }}" class="counselor-photo mb-2" style="width: 70px; height: 70px;">
+                                        {% else %}
+                                        <div class="counselor-photo-placeholder mx-auto mb-2" style="width: 70px; height: 70px; font-size: 1.5rem;">
+                                            {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
+                                        </div>
+                                        {% endif %}
+                                        <h6 class="card-title mb-1">Dr. {{ counselor.full_name }}</h6>
+                                        <small class="text-primary">{{ counselor.specialization }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-warning">No counselors available at this time.</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="counselor" id="selected-counselor" required>
+                        
+                        <!-- Select Service -->
+                        <h4 class="mb-3"><i class="bi bi-list-check text-primary me-2"></i>Choose a Service</h4>
+                        <div class="row g-3 mb-4" id="service-selection">
+                            {% for service in services %}
+                            <div class="col-md-6">
+                                <div class="card service-card h-100 p-3" data-service-id="{{ service.id }}">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="card-title mb-1">{{ service.name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} minutes
+                                                </small>
+                                                {% if service.description %}
+                                                <p class="card-text mt-2 mb-0 small text-muted">{{ service.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                            {% if service.price > 0 %}
+                                            <span class="badge bg-primary fs-6">${{ service.price }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-warning">No services available at this time.</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="service" id="selected-service" required>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" id="continue-btn" disabled>
+                                Continue <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counselorCards = document.querySelectorAll('.counselor-card');
+    const serviceCards = document.querySelectorAll('.service-card');
+    const counselorInput = document.getElementById('selected-counselor');
+    const serviceInput = document.getElementById('selected-service');
+    const continueBtn = document.getElementById('continue-btn');
+    
+    function updateContinueButton() {
+        continueBtn.disabled = !(counselorInput.value && serviceInput.value);
+    }
+    
+    // Counselor selection
+    counselorCards.forEach(card => {
+        card.addEventListener('click', function() {
+            counselorCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            counselorInput.value = this.dataset.counselorId;
+            updateContinueButton();
+        });
+    });
+    
+    // Service selection
+    serviceCards.forEach(card => {
+        card.addEventListener('click', function() {
+            serviceCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            serviceInput.value = this.dataset.serviceId;
+            updateContinueButton();
+        });
+    });
+});
+</script>
+{% endblock %}

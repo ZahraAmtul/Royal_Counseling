@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Book Appointment - Confirm{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step completed">
+            <div class="step-number"><i class="bi bi-check"></i></div>
+            <span>Select</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="step completed">
+            <div class="step-number"><i class="bi bi-check"></i></div>
+            <span>Date & Time</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="step active">
+            <div class="step-number">3</div>
+            <span>Confirm</span>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="text-center mb-4">Confirm Your Booking</h2>
+                    
+                    <!-- Appointment Summary -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">
+                                <i class="bi bi-calendar-check text-primary me-2"></i>Appointment Details
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <strong class="text-muted">Counselor</strong>
+                                    <p class="mb-0">Dr. {{ counselor.full_name }}</p>
+                                    <small class="text-muted">{{ counselor.specialization }}</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong class="text-muted">Service</strong>
+                                    <p class="mb-0">{{ service.name }}</p>
+                                    <small class="text-muted">{{ service.duration_minutes }} minutes</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong class="text-muted">Date</strong>
+                                    <p class="mb-0">{{ appointment_date|date:"l, F j, Y" }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <strong class="text-muted">Time</strong>
+                                    <p class="mb-0">{{ start_time|time:"g:i A" }} - {{ end_time|time:"g:i A" }}</p>
+                                </div>
+                                {% if service.price > 0 %}
+                                <div class="col-12">
+                                    <strong class="text-muted">Price</strong>
+                                    <p class="mb-0 h5 text-primary">${{ service.price }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Client Details Form -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-person-lines-fill text-primary me-2"></i>Your Information
+                    </h5>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center">
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="bi bi-check-circle me-2"></i>Confirm Booking
+                            </button>
+                            <a href="{% url 'booking_datetime' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

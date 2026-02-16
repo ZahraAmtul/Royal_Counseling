@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Appointment - Step 2{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step completed">
+            <div class="step-number"><i class="bi bi-check"></i></div>
+            <span>Select</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="step active">
+            <div class="step-number">2</div>
+            <span>Date & Time</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <span>Confirm</span>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Selection Summary -->
+                    <div class="alert alert-light border mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-person me-2"></i>Counselor:</strong>
+                                Dr. {{ counselor.full_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-list-check me-2"></i>Service:</strong>
+                                {{ service.name }} ({{ service.duration_minutes }} min)
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="mb-4"><i class="bi bi-calendar-event text-primary me-2"></i>Select Date & Time</h4>
+                    
+                    <div class="row">
+                        <!-- Calendar -->
+                        <div class="col-lg-7 mb-4">
+                            <div id="calendar"></div>
+                        </div>
+                        
+                        <!-- Time Slots -->
+                        <div class="col-lg-5">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">
+                                        <i class="bi bi-clock me-2"></i>Available Times
+                                    </h5>
+                                    <p class="text-muted" id="selected-date-display">Select a date from the calendar</p>
+                                    
+                                    <div id="time-slots-container">
+                                        <!-- Time slots will be loaded here -->
+                                    </div>
+                                    
+                                    <div id="no-slots-message" class="text-center py-4" style="display: none;">
+                                        <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mt-2">No available slots for this date</p>
+                                    </div>
+                                    
+                                    <div id="loading-slots" class="text-center py-4" style="display: none;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form method="post" id="datetime-form" class="mt-4">
+                                {% csrf_token %}
+                                <input type="hidden" name="appointment_date" id="appointment-date" required>
+                                <input type="hidden" name="start_time" id="start-time" required>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="continue-btn" disabled>
+                                        Continue <i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                    <a href="{% url 'booking_start' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>Back
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counselorId = '{{ counselor.id }}';
+    const serviceId = '{{ service.id }}';
+    const availableDates = [
+        {% for date in available_dates %}
+        '{{ date|date:"Y-m-d" }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    const appointmentDateInput = document.getElementById('appointment-date');
+    const startTimeInput = document.getElementById('start-time');
+    const continueBtn = document.getElementById('continue-btn');
+    const selectedDateDisplay = document.getElementById('selected-date-display');
+    const timeSlotsContainer = document.getElementById('time-slots-container');
+    const noSlotsMessage = document.getElementById('no-slots-message');
+    const loadingSlots = document.getElementById('loading-slots');
+    
+    let selectedSlot = null;
+    
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: ''
+        },
+        validRange: {
+            start: new Date()
+        },
+        dateClick: function(info) {
+            const clickedDate = info.dateStr;
+            
+            // Check if date is available
+            if (!availableDates.includes(clickedDate)) {
+                return;
+            }
+            
+            // Remove previous selection
+            document.querySelectorAll('.fc-day').forEach(day => {
+                day.classList.remove('fc-day-selected');
+            });
+            
+            // Add selection to clicked day
+            info.dayEl.classList.add('fc-day-selected');
+            
+            // Update hidden input and display
+            appointmentDateInput.value = clickedDate;
+            const dateObj = new Date(clickedDate + 'T00:00:00');
+            selectedDateDisplay.innerHTML = `<strong>${dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong>`;
+            
+            // Load available slots
+            loadTimeSlots(clickedDate);
+        },
+        dayCellDidMount: function(info) {
+            const dateStr = info.date.toISOString().split('T')[0];
+            if (!availableDates.includes(dateStr)) {
+                info.el.classList.add('fc-day-disabled');
+                info.el.style.backgroundColor = '#f8f9fa';
+                info.el.style.color = '#ccc';
+                info.el.style.cursor = 'not-allowed';
+            } else {
+                info.el.style.cursor = 'pointer';
+            }
+        }
+    });
+    calendar.render();
+    
+    function loadTimeSlots(date) {
+        // Show loading
+        timeSlotsContainer.innerHTML = '';
+        noSlotsMessage.style.display = 'none';
+        loadingSlots.style.display = 'block';
+        continueBtn.disabled = true;
+        startTimeInput.value = '';
+        selectedSlot = null;
+        
+        // Fetch available slots
+        fetch(`/api/slots/?counselor_id=${counselorId}&service_id=${serviceId}&date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                loadingSlots.style.display = 'none';
+                
+                if (data.slots && data.slots.length > 0) {
+                    renderTimeSlots(data.slots);
+                } else {
+                    noSlotsMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading slots:', error);
+                loadingSlots.style.display = 'none';
+                noSlotsMessage.style.display = 'block';
+            });
+    }
+    
+    function renderTimeSlots(slots) {
+        timeSlotsContainer.innerHTML = '';
+        
+        slots.forEach(slot => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-outline-primary time-slot-btn';
+            btn.textContent = slot.display;
+            btn.dataset.startTime = slot.start;
+            
+            btn.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.time-slot-btn').forEach(b => {
+                    b.classList.remove('selected', 'btn-primary');
+                    b.classList.add('btn-outline-primary');
+                });
+                
+                // Select this slot
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('selected', 'btn-primary');
+                
+                startTimeInput.value = this.dataset.startTime;
+                continueBtn.disabled = false;
+            });
+            
+            timeSlotsContainer.appendChild(btn);
+        });
+    }
+});
+</script>
+
+<style>
+.fc-day-selected {
+    background-color: #e8f0fe !important;
+}
+
+.fc-day-disabled {
+    pointer-events: none;
+}
+
+.fc-daygrid-day:not(.fc-day-disabled):hover {
+    background-color: #f0f0f0;
+}
+
+.time-slot-btn {
+    margin: 4px;
+}
+
+.time-slot-btn.selected {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+</style>
+{% endblock %}
