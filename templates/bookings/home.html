@@ -6,34 +6,39 @@
 <section class="hero-section">
     <div class="hero-image"></div>
     <div class="container hero-content">
-            <div class="text-white">
-                <h1 class="display-3 fw-bold mb-4 text-center">Find Your Sparkle with <span style="color: #61D3D3;">LOOP</span></h1>
-                <p class="lead mb-4">Where Elegance Meets Emotion</p>
-                <a href="#" class="btn btn-primary btn-lg">Shop Now</a>
-            </div>
+        <div>
+            <h1 class="hero-title">Find Clarity. Build Confidence. Move Forward.</h1>
+            <p class="lead mb-4">Professional counseling designed to support your emotional wellbeing and personal
+                growth.</p>
+            <a href="#" class="btn btn-primary btn-lg">Book a Session</a>
+        </div>
     </div>
 </section>
 
 <!-- Services Section -->
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">Our Services</h2>
+<section class="">
+    <div class="services-section">
+        <h2 class="services-title">Our Services</h2>
         <div class="row g-4">
             {% for service in services %}
             <div class="col-md-4">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <i class="bi bi-chat-heart text-primary" style="font-size: 3rem;"></i>
+                <div class="service-card">
+                    <div class="card-overlay">
+                        <h3>{{ service.name }}</h3>
+                        <p class="duration">{{ service.duration_minutes }} Minutes</p>
+
+                        <div class="hover-content">
+                            <p>
+                                {{ service.description|default:"Professional counseling session tailored to your needs." }}
+                            </p>
+                            {% if service.price > 0 %}
+                            <h4>${{ service.price }}</h4>
+                            {% endif %}
+                            <button>Book Session</button>
                         </div>
-                        <h5 class="card-title">{{ service.name }}</h5>
-                        <p class="text-muted">{{ service.duration_minutes }} minutes</p>
-                        <p class="card-text">{{ service.description|default:"Professional counseling session tailored to your needs." }}</p>
-                        {% if service.price > 0 %}
-                        <p class="h4 text-primary">${{ service.price }}</p>
-                        {% endif %}
                     </div>
                 </div>
+               
             </div>
             {% empty %}
             <div class="col-12 text-center">
@@ -43,9 +48,33 @@
         </div>
     </div>
 </section>
+<section class="why-section">
+  <div class="why-container">
+
+    <div class="why-text">
+      <h2>Why Choose Royal Counseling</h2>
+      <p>
+        A compassionate approach designed to help you feel heard,
+        supported, and empowered.
+      </p>
+
+      <ul>
+        <li>✓ Licensed Professionals</li>
+        <li>✓ Confidential Environment</li>
+        <li>✓ Personalized Care</li>
+        <li>✓ Flexible Sessions</li>
+      </ul>
+
+      <button>Book Appointment</button>
+    </div>
+
+    <div class="why-image"></div>
+
+  </div>
+</section>
 
 <!-- Counselors Section -->
-<section class="py-5 bg-white counselors-section">
+<section class="py-5 counselors-section">
     <div class="inner-counselors-section">
         <h2 class="text-center mb-5">Meet Our Counselors</h2>
         <div class="row g-4 justify-content-center">
@@ -54,7 +83,8 @@
                 <div class="card h-100 text-center p-4">
                     <div class="card-body">
                         {% if counselor.photo %}
-                        <img src="{{ counselor.photo.url }}" alt="{{ counselor.full_name }}" class="counselor-photo mb-3">
+                        <img src="{{ counselor.photo.url }}" alt="{{ counselor.full_name }}"
+                            class="counselor-photo mb-3">
                         {% else %}
                         <div class="counselor-photo-placeholder mx-auto mb-3">
                             {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
@@ -62,7 +92,8 @@
                         {% endif %}
                         <h5 class="card-title">Dr. {{ counselor.full_name }}</h5>
                         <p class="text-primary mb-2">{{ counselor.specialization }}</p>
-                        <p class="card-text text-muted">{{ counselor.bio|truncatewords:20|default:"Experienced professional dedicated to helping you achieve your mental health goals." }}</p>
+                        <p class="card-text text-muted">{{ counselor.bio|truncatewords:20|default:"Experienced
+                            professional dedicated to helping you achieve your mental health goals." }}</p>
                     </div>
                 </div>
             </div>
@@ -86,21 +117,25 @@
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row g-4">
             <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
                     <i class="bi bi-person-check" style="font-size: 2rem;"></i>
                 </div>
                 <h5>1. Choose a Counselor</h5>
-                <p class="text-muted">Browse our team of experienced professionals and select the one that fits your needs.</p>
+                <p class="text-muted">Browse our team of experienced professionals and select the one that fits your
+                    needs.</p>
             </div>
             <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
                     <i class="bi bi-calendar-event" style="font-size: 2rem;"></i>
                 </div>
                 <h5>2. Pick a Time</h5>
                 <p class="text-muted">Select a date and time that works for your schedule from available slots.</p>
             </div>
             <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
                     <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
                 </div>
                 <h5>3. Confirm Booking</h5>
