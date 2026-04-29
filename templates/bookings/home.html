@@ -8,54 +8,51 @@
     <div class="container hero-content">
         <div>
             <h1 class="hero-title">Find Clarity. Build Confidence. Move Forward.</h1>
-            <p class="lead mb-4">Professional counseling designed to support your emotional wellbeing and personal
-                growth.</p>
-            <a href="#" class="btn btn-primary btn-lg">Book a Session</a>
+            <p class="mb-4">To provide a high quality and cost effective counselling service, our goal is to ensure a safe and trustworthy platform.</p>
+            <a href="{% url 'booking_start' %}" class="btn btn-lg">Book a Session</a>
         </div>
     </div>
 </section>
 
 <!-- Services Section -->
-<section class="">
-    <div class="services-section">
-        <h2 class="services-title">Our Services</h2>
-        <div class="row g-4">
-            {% for service in services %}
-            <div class="col-md-4">
-                <div class="service-card">
-                    <div class="card-overlay">
-                        <h3>{{ service.name }}</h3>
-                        <p class="duration">{{ service.duration_minutes }} Minutes</p>
+<div class="services-section">
+    <h2 class="services-title">Our Services</h2>
+    <div class="row g-4">
+        {% for service in services %}
+        <div class="col-md-4" data-aos="fade-up" data-aos-duration="{{ forloop.counter0|add:1 }}000">
+            <div class="service-card" {% if service.image %} style="background-image: url('{{ service.image.url }}');"{% endif %}>
+                <div class="card-overlay">
+                    <h3>{{ service.name }}</h3>
+                    <p class="duration">{{ service.duration_minutes }} Minutes</p>
 
-                        <div class="hover-content">
-                            <p>
-                                {{ service.description|default:"Professional counseling session tailored to your needs." }}
-                            </p>
-                            {% if service.price > 0 %}
-                            <h4>${{ service.price }}</h4>
-                            {% endif %}
-                            <button>Book Session</button>
-                        </div>
+                    <div class="hover-content">
+                        <p>
+                            {{ service.description|default:"Professional counseling session tailored to your needs." }}
+                        </p>
+                        {% if service.price > 0 %}
+                        <h4>${{ service.price }}</h4>
+                        {% endif %}
+                        <a href="{% url 'booking_start' %}" class="btn btn-lg">Book Session</a>
                     </div>
                 </div>
-               
             </div>
-            {% empty %}
-            <div class="col-12 text-center">
-                <p class="text-muted">Services will be displayed here.</p>
-            </div>
-            {% endfor %}
         </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p>Services will be displayed here.</p>
+        </div>
+        {% endfor %}
     </div>
-</section>
+</div>
+<!-- Why Section -->
 <section class="why-section">
   <div class="why-container">
 
     <div class="why-text">
-      <h2>Why Choose Royal Counseling</h2>
+      <h2>Why Choose Royal Counseling?</h2>
       <p>
-        A compassionate approach designed to help you feel heard,
-        supported, and empowered.
+        World is a global place and so it's people. In this age of information overload, rapidly changing technology, financial constraints and social media influence people are indeed under great pressure to cope with the challenges of Life. This has load to various mental health issues among people across all walks of life. Our aim is to extend 
+        hands for who are struggling and offer a practical solution to deal with various mental health challenges that are increasing everyday.
       </p>
 
       <ul>
@@ -65,10 +62,11 @@
         <li>✓ Flexible Sessions</li>
       </ul>
 
-      <button>Book Appointment</button>
+      <a href="{% url 'booking_start' %}" class="btn btn-lg">Book Appointment</a>
     </div>
 
-    <div class="why-image"></div>
+    <div class="why-image" data-aos="fade-up"
+     data-aos-duration="3000"></div>
 
   </div>
 </section>
@@ -79,7 +77,7 @@
         <h2 class="text-center mb-5">Meet Our Counselors</h2>
         <div class="row g-4 justify-content-center">
             {% for counselor in counselors %}
-            <div class="col-md-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-duration="{{ forloop.counter0|add:1 }}000">
                 <div class="card h-100 text-center p-4">
                     <div class="card-body">
                         {% if counselor.photo %}
@@ -90,60 +88,58 @@
                             {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
                         </div>
                         {% endif %}
-                        <h5 class="card-title">Dr. {{ counselor.full_name }}</h5>
-                        <p class="text-primary mb-2">{{ counselor.specialization }}</p>
-                        <p class="card-text text-muted">{{ counselor.bio|truncatewords:20|default:"Experienced
-                            professional dedicated to helping you achieve your mental health goals." }}</p>
+                        <h5 class="card-title text-white">Dr. {{ counselor.full_name }}</h5>
+                        <p class="primary-text mb-2">{{ counselor.specialization }}</p>
+                        <p class="card-text ">
+                            {{ counselor.bio|truncatewords:20|default_if_none:"Experienced professional dedicated to helping you achieve your mental health goals." }}
+                        </p>
                     </div>
                 </div>
             </div>
             {% empty %}
             <div class="col-12 text-center">
-                <p class="text-muted">Our counselors will be displayed here.</p>
+                <p class="">Our counselors will be displayed here.</p>
             </div>
             {% endfor %}
         </div>
         {% if counselors %}
         <div class="text-center mt-4">
-            <a href="{% url 'counselor_list' %}" class="btn btn-outline-primary">View All Counselors</a>
+            <a href="{% url 'counselor_list' %}" class="btn btn-lg">View All Counselors</a>
         </div>
         {% endif %}
     </div>
 </section>
 
 <!-- How It Works Section -->
-<section class="py-5 works-section">
+<section class="works-section">
     <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row g-4">
-            <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                    style="width: 80px; height: 80px;">
+            <div class="col-md-4 text-center" data-aos="fade-right" data-aos-duration="1000">
+                <div class="works-icon">
                     <i class="bi bi-person-check" style="font-size: 2rem;"></i>
                 </div>
-                <h5>1. Choose a Counselor</h5>
-                <p class="text-muted">Browse our team of experienced professionals and select the one that fits your
+                <h5 class="mt-4">1. Choose a Counselor</h5>
+                <p >Browse our team of experienced professionals and select the one that fits your
                     needs.</p>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                    style="width: 80px; height: 80px;">
+            <div class="col-md-4 text-center" data-aos="fade-right" data-aos-duration="2000">
+                <div class="works-icon">
                     <i class="bi bi-calendar-event" style="font-size: 2rem;"></i>
                 </div>
-                <h5>2. Pick a Time</h5>
-                <p class="text-muted">Select a date and time that works for your schedule from available slots.</p>
+                <h5 class="mt-4">2. Pick a Time</h5>
+                <p >Select a date and time that works for your schedule from available slots.</p>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                    style="width: 80px; height: 80px;">
+            <div class="col-md-4 text-center" data-aos="fade-right" data-aos-duration="3000">
+                <div class="works-icon">
                     <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
                 </div>
-                <h5>3. Confirm Booking</h5>
-                <p class="text-muted">Enter your details and receive instant confirmation of your appointment.</p>
+                <h5 class="mt-4">3. Confirm Booking</h5>
+                <p >Enter your details and receive instant confirmation of your appointment.</p>
             </div>
         </div>
         <div class="text-center mt-5">
-            <a href="{% url 'booking_start' %}" class="btn btn-primary btn-lg px-5">
+            <a href="{% url 'booking_start' %}" class="btn btn-lg px-5">
                 Get Started <i class="bi bi-arrow-right ms-2"></i>
             </a>
         </div>

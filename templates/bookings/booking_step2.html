@@ -40,7 +40,7 @@
                         </div>
                     </div>
 
-                    <h4 class="mb-4"><i class="bi bi-calendar-event text-primary me-2"></i>Select Date & Time</h4>
+                    <h4 class="mb-4"><i class="bi bi-calendar-event primary-text me-2"></i>Select Date & Time</h4>
                     
                     <div class="row">
                         <!-- Calendar -->
@@ -55,19 +55,19 @@
                                     <h5 class="card-title mb-3">
                                         <i class="bi bi-clock me-2"></i>Available Times
                                     </h5>
-                                    <p class="text-muted" id="selected-date-display">Select a date from the calendar</p>
+                                    <p class="" id="selected-date-display">Select a date from the calendar</p>
                                     
                                     <div id="time-slots-container">
                                         <!-- Time slots will be loaded here -->
                                     </div>
                                     
                                     <div id="no-slots-message" class="text-center py-4" style="display: none;">
-                                        <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
-                                        <p class="text-muted mt-2">No available slots for this date</p>
+                                        <i class="bi bi-calendar-x " style="font-size: 2rem;"></i>
+                                        <p class=" mt-2">No available slots for this date</p>
                                     </div>
                                     
                                     <div id="loading-slots" class="text-center py-4" style="display: none;">
-                                        <div class="spinner-border text-primary" role="status">
+                                        <div class="spinner-border primary-text" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                     </div>
@@ -80,7 +80,7 @@
                                 <input type="hidden" name="start_time" id="start-time" required>
                                 
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg" id="continue-btn" disabled>
+                                    <button type="submit" class="btn btn-lg" id="continue-btn" disabled>
                                         Continue <i class="bi bi-arrow-right ms-2"></i>
                                     </button>
                                     <a href="{% url 'booking_start' %}" class="btn btn-outline-secondary">
@@ -202,20 +202,20 @@ document.addEventListener('DOMContentLoaded', function() {
         slots.forEach(slot => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'btn btn-outline-primary time-slot-btn';
+            btn.className = 'btn time-slot-btn';
             btn.textContent = slot.display;
             btn.dataset.startTime = slot.start;
             
             btn.addEventListener('click', function() {
                 // Remove previous selection
                 document.querySelectorAll('.time-slot-btn').forEach(b => {
-                    b.classList.remove('selected', 'btn-primary');
-                    b.classList.add('btn-outline-primary');
+                    b.classList.remove('selected', 'btn');
+                    b.classList.add('btn');
                 });
                 
                 // Select this slot
-                this.classList.remove('btn-outline-primary');
-                this.classList.add('selected', 'btn-primary');
+                this.classList.remove('btn');
+                this.classList.add('selected', 'btn');
                 
                 startTimeInput.value = this.dataset.startTime;
                 continueBtn.disabled = false;

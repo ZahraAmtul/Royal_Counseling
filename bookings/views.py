@@ -31,6 +31,10 @@ class CounselorListView(ListView):
     context_object_name = 'counselors'
     queryset = Counselor.objects.filter(is_active=True)
 
+class ContactView(TemplateView):
+    """Contact page"""
+    template_name = 'bookings/contact.html'
+
 
 class BookingStartView(View):
     """Step 1: Select counselor and service"""

@@ -10,83 +10,91 @@
                 <div class="card-body p-5 text-center">
                     <!-- Success Icon -->
                     <div class="mb-4">
-                        <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                            style="width: 100px; height: 100px;">
                             <i class="bi bi-check-lg" style="font-size: 3rem;"></i>
                         </div>
                     </div>
-                    
+
                     <h2 class="text-success mb-3">Booking Confirmed!</h2>
-                    <p class="lead text-muted mb-4">Your appointment has been successfully scheduled.</p>
-                    
+                    <p class="lead  mb-4">Your appointment has been successfully scheduled.</p>
+
                     <!-- Appointment Details -->
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h5 class="mb-3">Appointment Details</h5>
                             <div class="row text-start">
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted d-block">Booking Reference</strong>
-                                    <span class="h5 text-primary">#{{ appointment.id }}</span>
+                                    <strong class=" d-block">Booking Reference</strong>
+                                    <span class="h5 primary-text">
+                                        <h5>#{{ appointment.id }}</h5>
+                                    </span>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted d-block">Status</strong>
-                                    <span class="badge bg-success fs-6">{{ appointment.get_status_display }}</span>
+                                    <strong class=" d-block">Status</strong>
+                                    <span class="badge text-white bg-success fs-6">{{ appointment.get_status_display}}</span>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted d-block">Counselor</strong>
+                                    <strong class=" d-block">Counselor</strong>
                                     <span>Dr. {{ appointment.counselor.full_name }}</span>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted d-block">Service</strong>
+                                    <strong class=" d-block">Service</strong>
                                     <span>{{ appointment.service.name }}</span>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted d-block">Date</strong>
+                                    <strong class=" d-block">Date</strong>
                                     <span>{{ appointment.appointment_date|date:"l, F j, Y" }}</span>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted d-block">Time</strong>
+                                    <strong class=" d-block">Time</strong>
                                     <span>{{ appointment.start_time|time:"g:i A" }} - {{ appointment.end_time|time:"g:i A" }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Client Info -->
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h5 class="mb-3">Your Information</h5>
                             <div class="row text-start">
                                 <div class="col-md-4 mb-2">
-                                    <strong class="text-muted d-block">Name</strong>
+                                    <strong class=" d-block">Name</strong>
                                     <span>{{ appointment.client_name }}</span>
                                 </div>
                                 <div class="col-md-4 mb-2">
-                                    <strong class="text-muted d-block">Email</strong>
+                                    <strong class=" d-block">Email</strong>
                                     <span>{{ appointment.client_email }}</span>
                                 </div>
                                 <div class="col-md-4 mb-2">
-                                    <strong class="text-muted d-block">Phone</strong>
+                                    <strong class=" d-block">Phone</strong>
                                     <span>{{ appointment.client_phone }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- What's Next -->
-                    <div class="alert alert-info text-start">
-                        <h6><i class="bi bi-info-circle me-2"></i>What's Next?</h6>
-                        <ul class="mb-0">
-                            <li>A confirmation email has been sent to <strong>{{ appointment.client_email }}</strong></li>
-                            <li>Please arrive 10 minutes before your scheduled time</li>
-                            <li>If you need to cancel or reschedule, please contact us at least 24 hours in advance</li>
-                        </ul>
+                    <div id="toast-card" class="toast-card">
+                        <div class="toast-icon">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+
+                        <div class="toast-content">
+                            <h6>Appointment Confirmed</h6>
+                            <p>
+                                Confirmation sent to <strong>{{ appointment.client_email }}</strong><br>
+                                Please arrive 10 minutes early.
+                            </p>
+                        </div>
+
+                        <button class="toast-close" onclick="closeToast()">×</button>
                     </div>
-                    
+
                     <div class="mt-4">
-                        <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-2">
+                        <a href="{% url 'home' %}" class="btn  btn-lg me-2">
                             <i class="bi bi-house me-2"></i>Back to Home
                         </a>
-                        <a href="{% url 'booking_start' %}" class="btn btn-outline-primary btn-lg">
+                        <a href="{% url 'booking_start' %}" class="btn btn-lg">
                             <i class="bi bi-calendar-plus me-2"></i>Book Another
                         </a>
                     </div>
@@ -95,4 +103,25 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    function showToast() {
+    const toast = document.getElementById('toast-card');
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        closeToast();
+    }, 8000);
+}
+
+function closeToast() {
+    const toast = document.getElementById('toast-card');
+    toast.classList.remove('show');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    showToast();
+});
+</script>
 {% endblock %}

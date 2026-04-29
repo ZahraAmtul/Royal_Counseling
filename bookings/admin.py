@@ -29,10 +29,17 @@ class CounselorAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'duration_minutes', 'price', 'is_active']
+    list_display = ['name', 'duration_minutes', 'price', 'is_active', 'image']
     list_filter = ['is_active']
     search_fields = ['name', 'description']
-
+    fieldsets = (
+            ('Service Information', {
+                'fields': ('name', 'description', 'duration_minutes', 'price', 'image')
+            }),
+            ('Status', {
+                'fields': ('is_active',)
+            }),
+        )
 
 @admin.register(Availability)
 class AvailabilityAdmin(admin.ModelAdmin):

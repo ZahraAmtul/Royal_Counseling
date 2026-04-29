@@ -36,6 +36,12 @@ class Service(models.Model):
         help_text="Duration in minutes"
     )
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    image = models.ImageField(
+        upload_to='services/', 
+        blank=True, 
+        null=True,
+        help_text="Service image (recommended: 400x300px)"
+    )
     is_active = models.BooleanField(default=True)
 
     class Meta:

@@ -33,7 +33,7 @@
                         {% csrf_token %}
                         
                         <!-- Select Counselor -->
-                        <h4 class="mb-3"><i class="bi bi-person-check text-primary me-2"></i>Choose a Counselor</h4>
+                        <h4 class="mb-3"><i class="bi bi-person-check primary-text me-2"></i>Choose a Counselor</h4>
                         <div class="row g-3 mb-5" id="counselor-selection">
                             {% for counselor in counselors %}
                             <div class="col-md-6 col-lg-4">
@@ -46,8 +46,8 @@
                                             {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
                                         </div>
                                         {% endif %}
-                                        <h6 class="card-title mb-1">Dr. {{ counselor.full_name }}</h6>
-                                        <small class="text-primary">{{ counselor.specialization }}</small>
+                                        <h6 class="card-title text-white mb-1">Dr. {{ counselor.full_name }}</h6>
+                                        <small class="primary-text">{{ counselor.specialization }}</small>
                                     </div>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                         <input type="hidden" name="counselor" id="selected-counselor" required>
                         
                         <!-- Select Service -->
-                        <h4 class="mb-3"><i class="bi bi-list-check text-primary me-2"></i>Choose a Service</h4>
+                        <h4 class="mb-3"><i class="bi bi-list-check primary-text me-2"></i>Choose a Service</h4>
                         <div class="row g-3 mb-4" id="service-selection">
                             {% for service in services %}
                             <div class="col-md-6">
@@ -68,16 +68,16 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
-                                                <h6 class="card-title mb-1">{{ service.name }}</h6>
-                                                <small class="text-muted">
+                                                <h6 class="card-title text-white mb-1">{{ service.name }}</h6>
+                                                <small class="">
                                                     <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} minutes
                                                 </small>
                                                 {% if service.description %}
-                                                <p class="card-text mt-2 mb-0 small text-muted">{{ service.description }}</p>
+                                                <p class="card-text mt-2 mb-0 small ">{{ service.description }}</p>
                                                 {% endif %}
                                             </div>
                                             {% if service.price > 0 %}
-                                            <span class="badge bg-primary fs-6">${{ service.price }}</span>
+                                            <span class="badge text-black fs-6">${{ service.price }}</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -92,7 +92,7 @@
                         <input type="hidden" name="service" id="selected-service" required>
                         
                         <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg px-5" id="continue-btn" disabled>
+                            <button type="submit" class="btn btn-lg px-5" id="continue-btn" disabled>
                                 Continue <i class="bi bi-arrow-right ms-2"></i>
                             </button>
                         </div>

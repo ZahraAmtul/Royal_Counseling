@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
     path('counselors/', views.CounselorListView.as_view(), name='counselor_list'),
-    
+    path('contact/', views.ContactView.as_view(), name='contact'),
     # Booking flow
     path('book/', views.BookingStartView.as_view(), name='booking_start'),
     path('book/datetime/', views.BookingDateTimeView.as_view(), name='booking_datetime'),

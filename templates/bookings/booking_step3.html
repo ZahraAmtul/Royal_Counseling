@@ -33,31 +33,31 @@
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3">
-                                <i class="bi bi-calendar-check text-primary me-2"></i>Appointment Details
+                                <i class="bi bi-calendar-check primary-text me-2"></i>Appointment Details
                             </h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted">Counselor</strong>
-                                    <p class="mb-0">Dr. {{ counselor.full_name }}</p>
-                                    <small class="text-muted">{{ counselor.specialization }}</small>
+                                    <strong class="">Counselor</strong>
+                                    <h6 class="mb-0">Dr. {{ counselor.full_name }}</h6>
+                                    <small class="">{{ counselor.specialization }}</small>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted">Service</strong>
-                                    <p class="mb-0">{{ service.name }}</p>
-                                    <small class="text-muted">{{ service.duration_minutes }} minutes</small>
+                                    <strong class="">Service</strong>
+                                    <h6 class="mb-0">{{ service.name }}</h6>
+                                    <small class="">{{ service.duration_minutes }} minutes</small>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted">Date</strong>
-                                    <p class="mb-0">{{ appointment_date|date:"l, F j, Y" }}</p>
+                                    <strong class="">Date</strong>
+                                    <h6 class="mb-0">{{ appointment_date|date:"l, F j, Y" }}</h6>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <strong class="text-muted">Time</strong>
-                                    <p class="mb-0">{{ start_time|time:"g:i A" }} - {{ end_time|time:"g:i A" }}</p>
+                                    <strong class="">Time</strong>
+                                    <h6 class="mb-0">{{ start_time|time:"g:i A" }} - {{ end_time|time:"g:i A" }}</h6>
                                 </div>
                                 {% if service.price > 0 %}
                                 <div class="col-12">
-                                    <strong class="text-muted">Price</strong>
-                                    <p class="mb-0 h5 text-primary">${{ service.price }}</p>
+                                    <strong class="">Price</strong>
+                                    <h5 class="mb-0 h5 primary-text">${{ service.price }}</h5>
                                 </div>
                                 {% endif %}
                             </div>
@@ -66,7 +66,7 @@
                     
                     <!-- Client Details Form -->
                     <h5 class="mb-3">
-                        <i class="bi bi-person-lines-fill text-primary me-2"></i>Your Information
+                        <i class="bi bi-person-lines-fill primary-text me-2"></i>Your Information
                     </h5>
                     
                     <form method="post">
