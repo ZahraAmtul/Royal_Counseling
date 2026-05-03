@@ -1,13 +1,17 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from datetime import datetime, timedelta, date
 
 
 class Counselor(models.Model):
-    """Psychologist/Counselor profile"""
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    """Psychologist/Counselor profile - linked to Django User"""
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='counselor_profile',
+        help_text="Link to Django user account for login"
+    )
     phone = models.CharField(max_length=20, blank=True)
     photo = models.ImageField(upload_to='counselors/', blank=True, null=True)
     specialization = models.CharField(max_length=200, help_text="e.g., Anxiety, Depression, Couples Therapy")
@@ -16,18 +20,30 @@ class Counselor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['first_name', 'last_name']
+        ordering = ['user__first_name', 'user__last_name']
 
     def __str__(self):
-        return f"Dr. {self.first_name} {self.last_name}"
+        return f"Dr. {self.user.get_full_name() or self.user.username}"
 
     @property
     def full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.user.get_full_name() or self.user.username
+    
+    @property
+    def email(self):
+        return self.user.email
 
 
 class Service(models.Model):
-    """Types of counseling sessions"""
+    """Types of counseling sessions - can be global or counselor-specific"""
+    counselor = models.ForeignKey(
+        Counselor,
+        on_delete=models.CASCADE,
+        related_name='services',
+        null=True,
+        blank=True,
+        help_text="Leave empty for global services available to all counselors"
+    )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(
@@ -37,8 +53,8 @@ class Service(models.Model):
     )
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     image = models.ImageField(
-        upload_to='services/', 
-        blank=True, 
+        upload_to='services/',
+        blank=True,
         null=True,
         help_text="Service image (recommended: 400x300px)"
     )
@@ -48,7 +64,9 @@ class Service(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} ({self.duration_minutes} min)"
+        if self.counselor:
+            return f"{self.name} ({self.duration_minutes} min) - {self.counselor}"
+        return f"{self.name} ({self.duration_minutes} min) - Global"
 
 
 class Availability(models.Model):
@@ -90,11 +108,13 @@ class Appointment(models.Model):
         ('completed', 'Completed'),
     ]
 
+    # Client info
     client_name = models.CharField(max_length=200)
     client_email = models.EmailField()
     client_phone = models.CharField(max_length=20)
     notes = models.TextField(blank=True, help_text="Any specific concerns or notes")
 
+    # Appointment details
     counselor = models.ForeignKey(
         Counselor, 
         on_delete=models.CASCADE, 
@@ -111,16 +131,18 @@ class Appointment(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
+    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['appointment_date', 'start_time']
+        ordering = ['-appointment_date', '-start_time']
 
     def __str__(self):
         return f"{self.client_name} with {self.counselor} on {self.appointment_date} at {self.start_time}"
 
     def save(self, *args, **kwargs):
+        # Auto-calculate end time based on service duration
         if self.service and self.start_time and not self.end_time:
             start_datetime = datetime.combine(date.today(), self.start_time)
             end_datetime = start_datetime + timedelta(minutes=self.service.duration_minutes)
