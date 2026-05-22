@@ -296,6 +296,6 @@ class AppointmentAdmin(CounselorFilteredAdmin):
 # Admin Site Customization
 # -----------------------------------------------------------------------------
 
-admin.site.site_header = "MindCare Counseling Admin"
-admin.site.site_title = "MindCare Admin"
-admin.site.index_title = "Welcome to MindCare Management Portal"
+admin.site.site_header = "STU Counseling Admin"
+admin.site.site_title = "STU Admin"
+admin.site.index_title = "Welcome to STU Management Portal"
