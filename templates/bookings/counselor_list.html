@@ -5,7 +5,8 @@
 {% block content %}
 <!-- Counselor Section -->
 <section class="counselor-hero">
-    <div class="counselor-image">
+    <div class="counselor-image"></div>
+    <div class="counselor-content">
         <h1 class="counselor-title">OUR COUNSELORS</h1>
             <p class="mb-4">
                 Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
@@ -26,7 +27,7 @@
                         {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
                     </div>
                     {% endif %}
-                    <h5 class="card-title text-white mb-1">Dr. {{ counselor.full_name }}</h5>
+                    <h5 class="card-title text-white mb-1">{{ counselor.full_name }}</h5>
                     <p class="primary-text mb-3">{{ counselor.specialization }}</p>
                     <p class="card-text ">
                         {{ counselor.bio|default:"Dedicated to helping clients achieve their mental health and wellness goals through evidence-based therapeutic approaches." }}

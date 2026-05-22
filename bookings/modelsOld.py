@@ -4,8 +4,46 @@ from django.core.validators import MinValueValidator
 from datetime import datetime, timedelta, date
 
 
+class Counselor(models.Model):
+    """Psychologist/Counselor profile - linked to Django User"""
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='counselor_profile',
+        help_text="Link to Django user account for login"
+    )
+    phone = models.CharField(max_length=20, blank=True)
+    photo = models.ImageField(upload_to='counselors/', blank=True, null=True)
+    specialization = models.CharField(max_length=200, help_text="e.g., Anxiety, Depression, Couples Therapy")
+    bio = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['user__first_name', 'user__last_name']
+
+    def __str__(self):
+        return f" {self.user.get_full_name() or self.user.username}"
+# Dr. {self.user.get_full_name() or self.user.username}"
+    @property
+    def full_name(self):
+        return self.user.get_full_name() or self.user.username
+    
+    @property
+    def email(self):
+        return self.user.email
+
+
 class Service(models.Model):
-    """Types of counseling sessions - Global services that counselors can offer"""
+    """Types of counseling sessions - can be global or counselor-specific"""
+    counselor = models.ForeignKey(
+        Counselor,
+        on_delete=models.CASCADE,
+        related_name='services',
+        null=True,
+        blank=True,
+        help_text="Leave empty for global services available to all counselors"
+    )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(
@@ -26,46 +64,9 @@ class Service(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} ({self.duration_minutes} min)"
-
-
-class Counselor(models.Model):
-    """Psychologist/Counselor profile - linked to Django User"""
-    user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='counselor_profile',
-        help_text="Link to Django user account for login"
-    )
-    phone = models.CharField(max_length=20, blank=True)
-    photo = models.ImageField(upload_to='counselors/', blank=True, null=True)
-    specialization = models.CharField(max_length=200, help_text="e.g., Anxiety, Depression, Couples Therapy")
-    bio = models.TextField(blank=True)
-    
-    # Many-to-Many: Counselor can offer multiple services
-    services = models.ManyToManyField(
-        Service,
-        related_name='counselors',
-        blank=True,
-        help_text="Select services this counselor offers"
-    )
-    
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['user__first_name', 'user__last_name']
-
-    def __str__(self):
-        return f"Dr. {self.user.get_full_name() or self.user.username}"
-
-    @property
-    def full_name(self):
-        return self.user.get_full_name() or self.user.username
-    
-    @property
-    def email(self):
-        return self.user.email
+        if self.counselor:
+            return f"{self.name} ({self.duration_minutes} min) - {self.counselor}"
+        return f"{self.name} ({self.duration_minutes} min) - Global"
 
 
 class Availability(models.Model):

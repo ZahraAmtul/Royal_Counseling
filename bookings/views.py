@@ -36,6 +36,16 @@ class ContactView(TemplateView):
     template_name = 'bookings/contact.html'
 
 
+class ServicesView(TemplateView):
+    """Services page"""
+    template_name = 'bookings/services.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['services'] = Service.objects.filter(is_active=True)
+        return context
+
+
 class BookingStartView(View):
     """Step 1: Select counselor and service"""
     template_name = 'bookings/booking_step1.html'

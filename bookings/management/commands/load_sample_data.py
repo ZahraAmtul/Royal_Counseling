@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         
-        # Create Superuser (if not exists)
+        # Create Superuser
         if not User.objects.filter(username='admin').exists():
             User.objects.create_superuser(
                 username='admin',
@@ -20,34 +20,63 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS('Created superuser: admin / admin123'))
         
-        # Create Global Services (available to all counselors)
-        global_services = [
+        # Create Services (Global - managed by admin only)
+        services_data = [
             {
                 'name': 'Individual Session',
                 'description': 'One-on-one counseling session for personal issues.',
                 'duration_minutes': 50,
                 'price': 120.00,
-                'counselor': None  # Global
             },
             {
                 'name': 'Initial Consultation',
                 'description': 'First-time meeting to discuss your concerns.',
                 'duration_minutes': 30,
                 'price': 0.00,
-                'counselor': None  # Global
+            },
+            {
+                'name': 'Couples Therapy',
+                'description': 'Counseling session for couples to improve relationships.',
+                'duration_minutes': 80,
+                'price': 180.00,
+            },
+            {
+                'name': 'Family Session',
+                'description': 'Family counseling to resolve conflicts and improve communication.',
+                'duration_minutes': 90,
+                'price': 200.00,
+            },
+            {
+                'name': 'Group Therapy',
+                'description': 'Small group session focused on shared experiences.',
+                'duration_minutes': 90,
+                'price': 60.00,
+            },
+            {
+                'name': 'EMDR Therapy',
+                'description': 'Eye Movement Desensitization and Reprocessing for trauma.',
+                'duration_minutes': 60,
+                'price': 150.00,
+            },
+            {
+                'name': 'Anxiety Workshop',
+                'description': 'Focused session on anxiety management techniques.',
+                'duration_minutes': 90,
+                'price': 80.00,
             },
         ]
         
-        for service_data in global_services:
+        created_services = {}
+        for service_data in services_data:
             service, created = Service.objects.get_or_create(
                 name=service_data['name'],
-                counselor__isnull=True,
                 defaults=service_data
             )
+            created_services[service.name] = service
             if created:
-                self.stdout.write(self.style.SUCCESS(f'Created global service: {service.name}'))
+                self.stdout.write(self.style.SUCCESS(f'Created service: {service.name}'))
         
-        # Create Counselor Users with Profiles
+        # Create Counselor Users with Profiles and Services
         counselors_data = [
             {
                 'username': 'sarah',
@@ -60,16 +89,14 @@ class Command(BaseCommand):
                     'specialization': 'Anxiety, Depression, Stress Management',
                     'bio': 'Dr. Sarah Johnson has over 15 years of experience helping individuals overcome anxiety and depression.',
                 },
+                'services': ['Individual Session', 'Initial Consultation', 'Anxiety Workshop', 'Group Therapy'],
                 'availability': [
-                    (0, '09:00', '17:00'),  # Monday
-                    (1, '09:00', '17:00'),  # Tuesday
-                    (2, '09:00', '17:00'),  # Wednesday
-                    (3, '09:00', '17:00'),  # Thursday
-                    (4, '09:00', '14:00'),  # Friday
+                    (0, '09:00', '17:00'),
+                    (1, '09:00', '17:00'),
+                    (2, '09:00', '17:00'),
+                    (3, '09:00', '17:00'),
+                    (4, '09:00', '14:00'),
                 ],
-                'services': [
-                    {'name': 'Anxiety Workshop', 'duration_minutes': 90, 'price': 80.00},
-                ]
             },
             {
                 'username': 'michael',
@@ -82,16 +109,13 @@ class Command(BaseCommand):
                     'specialization': 'Couples Therapy, Family Counseling',
                     'bio': 'Dr. Michael Chen specializes in relationship counseling and family therapy.',
                 },
+                'services': ['Individual Session', 'Initial Consultation', 'Couples Therapy', 'Family Session'],
                 'availability': [
-                    (0, '10:00', '18:00'),  # Monday
-                    (2, '10:00', '18:00'),  # Wednesday
-                    (3, '10:00', '18:00'),  # Thursday
-                    (5, '10:00', '15:00'),  # Saturday
+                    (0, '10:00', '18:00'),
+                    (2, '10:00', '18:00'),
+                    (3, '10:00', '18:00'),
+                    (5, '10:00', '15:00'),
                 ],
-                'services': [
-                    {'name': 'Couples Therapy', 'duration_minutes': 80, 'price': 180.00},
-                    {'name': 'Family Session', 'duration_minutes': 90, 'price': 200.00},
-                ]
             },
             {
                 'username': 'emily',
@@ -104,15 +128,12 @@ class Command(BaseCommand):
                     'specialization': 'Trauma, PTSD, Grief Counseling',
                     'bio': 'Dr. Emily Williams is a trauma-informed therapist specializing in PTSD and grief.',
                 },
+                'services': ['Individual Session', 'Initial Consultation', 'EMDR Therapy'],
                 'availability': [
-                    (1, '08:00', '16:00'),  # Tuesday
-                    (2, '08:00', '16:00'),  # Wednesday
-                    (4, '08:00', '16:00'),  # Friday
+                    (1, '08:00', '16:00'),
+                    (2, '08:00', '16:00'),
+                    (4, '08:00', '16:00'),
                 ],
-                'services': [
-                    {'name': 'EMDR Therapy', 'duration_minutes': 60, 'price': 150.00},
-                    {'name': 'Grief Support', 'duration_minutes': 50, 'price': 120.00},
-                ]
             },
         ]
         
@@ -124,7 +145,7 @@ class Command(BaseCommand):
                     'email': data['email'],
                     'first_name': data['first_name'],
                     'last_name': data['last_name'],
-                    'is_staff': True,  # Allow admin access
+                    'is_staff': True,
                 }
             )
             
@@ -144,6 +165,12 @@ class Command(BaseCommand):
             if profile_created:
                 self.stdout.write(f"  Created profile for Dr. {counselor.full_name}")
                 
+                # Add Services (Many-to-Many)
+                for service_name in data['services']:
+                    if service_name in created_services:
+                        counselor.services.add(created_services[service_name])
+                self.stdout.write(f"  Assigned {len(data['services'])} services")
+                
                 # Create Availability
                 for day, start, end in data['availability']:
                     Availability.objects.get_or_create(
@@ -155,16 +182,6 @@ class Command(BaseCommand):
                         }
                     )
                 self.stdout.write(f"  Added {len(data['availability'])} availability slots")
-                
-                # Create Counselor-specific Services
-                for svc in data.get('services', []):
-                    Service.objects.create(
-                        counselor=counselor,
-                        name=svc['name'],
-                        duration_minutes=svc['duration_minutes'],
-                        price=svc['price']
-                    )
-                self.stdout.write(f"  Added {len(data.get('services', []))} custom services")
         
         self.stdout.write(self.style.SUCCESS('\n✅ Sample data loaded successfully!'))
         self.stdout.write('\n' + '='*60)
@@ -178,3 +195,5 @@ class Command(BaseCommand):
         self.stdout.write('  Username: michael  | Password: michael123')
         self.stdout.write('  Username: emily    | Password: emily123')
         self.stdout.write('='*60)
+        self.stdout.write('\nServices are assigned to counselors via Many-to-Many.')
+        self.stdout.write('Admin can manage services, counselors select which ones they offer.')

@@ -5,67 +5,36 @@
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-image"></div>
-    <div class="container hero-content">
+    <div class="hero-content">
         <div>
             <h1 class="hero-title">Find Clarity. Build Confidence. Move Forward.</h1>
-            <p class="mb-4">To provide a high quality and cost effective counselling service, our goal is to ensure a safe and trustworthy platform.</p>
-            <a href="{% url 'booking_start' %}" class="btn btn-lg">Book a Session</a>
+            <h6 class="hero-subtitle">To provide a high quality and cost effective counselling service, our goal is to ensure a safe and trustworthy platform.</h6>
+            <a href="{% url 'booking_start' %}" class="btn btn-lg">Book an Appointment</a>
         </div>
     </div>
 </section>
-
-<!-- Services Section -->
-<div class="services-section">
-    <h2 class="services-title">Our Services</h2>
-    <div class="row g-4">
-        {% for service in services %}
-        <div class="col-md-4" data-aos="fade-up" data-aos-duration="{{ forloop.counter0|add:1 }}000">
-            <div class="service-card" {% if service.image %} style="background-image: url('{{ service.image.url }}');"{% endif %}>
-                <div class="card-overlay">
-                    <h3>{{ service.name }}</h3>
-                    <p class="duration">{{ service.duration_minutes }} Minutes</p>
-
-                    <div class="hover-content">
-                        <p>
-                            {{ service.description|default:"Professional counseling session tailored to your needs." }}
-                        </p>
-                        {% if service.price > 0 %}
-                        <h4>${{ service.price }}</h4>
-                        {% endif %}
-                        <a href="{% url 'booking_start' %}" class="btn btn-lg">Book Session</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center">
-            <p>Services will be displayed here.</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 <!-- Why Section -->
 <section class="why-section">
   <div class="why-container">
 
     <div class="why-text">
-      <h2>Why Choose Royal Counseling?</h2>
-      <p>
+      <h2 data-aos="fade-right" data-aos-duration="1000">Why Choose Royal Counseling?</h2>
+      <h5 class="primary-text" data-aos="fade-right" data-aos-duration="2000">
         World is a global place and so it's people. In this age of information overload, rapidly changing technology, financial constraints and social media influence people are indeed under great pressure to cope with the challenges of Life. This has load to various mental health issues among people across all walks of life. Our aim is to extend 
         hands for who are struggling and offer a practical solution to deal with various mental health challenges that are increasing everyday.
-      </p>
+      </h5>
 
       <ul>
-        <li>✓ Licensed Professionals</li>
-        <li>✓ Confidential Environment</li>
-        <li>✓ Personalized Care</li>
-        <li>✓ Flexible Sessions</li>
+        <li data-aos="fade-right" data-aos-duration="3000">✓ Licensed Professionals</li>
+        <li data-aos="fade-right" data-aos-duration="3000">✓ Confidential Environment</li>
+        <li data-aos="fade-right" data-aos-duration="3000">✓ Personalized Care</li>
+        <li data-aos="fade-right" data-aos-duration="3000">✓ Flexible Sessions</li>
       </ul>
 
-      <a href="{% url 'booking_start' %}" class="btn btn-lg">Book Appointment</a>
+      <a data-aos="fade-right" data-aos-duration="3000" href="{% url 'booking_start' %}" class="btn btn-lg">Book an Appointment</a>
     </div>
 
-    <div class="why-image" data-aos="fade-up"
+    <div class="why-image" data-aos="fade-left"
      data-aos-duration="3000"></div>
 
   </div>
@@ -74,7 +43,7 @@
 <!-- Counselors Section -->
 <section class="py-5 counselors-section">
     <div class="inner-counselors-section">
-        <h2 class="text-center mb-5">Meet Our Counselors</h2>
+        <h2 class="text-center text-white mb-5">Meet Our Counselors</h2>
         <div class="row g-4 justify-content-center">
             {% for counselor in counselors %}
             <div class="col-md-4" data-aos="fade-up" data-aos-duration="{{ forloop.counter0|add:1 }}000">
@@ -88,17 +57,17 @@
                             {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
                         </div>
                         {% endif %}
-                        <h5 class="card-title text-white">Dr. {{ counselor.full_name }}</h5>
+                        <h5 class="card-title text-white">{{ counselor.full_name }}</h5>
                         <p class="primary-text mb-2">{{ counselor.specialization }}</p>
-                        <p class="card-text ">
+                        <h6 class="card-text ">
                             {{ counselor.bio|truncatewords:20|default_if_none:"Experienced professional dedicated to helping you achieve your mental health goals." }}
-                        </p>
+                        </h6>
                     </div>
                 </div>
             </div>
             {% empty %}
             <div class="col-12 text-center">
-                <p class="">Our counselors will be displayed here.</p>
+                <h6 class="text-muted">Our counselors will be displayed here.</h6>
             </div>
             {% endfor %}
         </div>
@@ -120,22 +89,22 @@
                     <i class="bi bi-person-check" style="font-size: 2rem;"></i>
                 </div>
                 <h5 class="mt-4">1. Choose a Counselor</h5>
-                <p >Browse our team of experienced professionals and select the one that fits your
-                    needs.</p>
+                <h6 >Browse our team of experienced professionals and select the one that fits your
+                    needs.</h6>
             </div>
             <div class="col-md-4 text-center" data-aos="fade-right" data-aos-duration="2000">
                 <div class="works-icon">
                     <i class="bi bi-calendar-event" style="font-size: 2rem;"></i>
                 </div>
                 <h5 class="mt-4">2. Pick a Time</h5>
-                <p >Select a date and time that works for your schedule from available slots.</p>
+                <h6 >Select a date and time that works for your schedule from available slots.</h6>
             </div>
             <div class="col-md-4 text-center" data-aos="fade-right" data-aos-duration="3000">
                 <div class="works-icon">
                     <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
                 </div>
                 <h5 class="mt-4">3. Confirm Booking</h5>
-                <p >Enter your details and receive instant confirmation of your appointment.</p>
+                <h6 >Enter your details and receive instant confirmation of your appointment.</h6>
             </div>
         </div>
         <div class="text-center mt-5">

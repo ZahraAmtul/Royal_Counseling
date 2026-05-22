@@ -1,8 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django import forms
 from .models import Counselor, Service, Availability, Appointment
 
 
@@ -21,11 +21,13 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
+        # Filter by counselor's own data
         if hasattr(request.user, 'counselor_profile'):
             return qs.filter(counselor=request.user.counselor_profile)
         return qs.none()
     
     def save_model(self, request, obj, form, change):
+        # Auto-assign counselor if not superuser
         if not request.user.is_superuser and hasattr(request.user, 'counselor_profile'):
             if hasattr(obj, 'counselor') and not obj.counselor_id:
                 obj.counselor = request.user.counselor_profile
@@ -33,44 +35,54 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
     
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
+        # Hide counselor field for non-superusers (auto-assigned)
         if not request.user.is_superuser and 'counselor' in form.base_fields:
             form.base_fields['counselor'].widget = forms.HiddenInput()
             form.base_fields['counselor'].required = False
         return form
     
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # Filter foreign key dropdowns to only show counselor's own data
         if not request.user.is_superuser and hasattr(request.user, 'counselor_profile'):
             if db_field.name == 'counselor':
                 kwargs['queryset'] = Counselor.objects.filter(id=request.user.counselor_profile.id)
             elif db_field.name == 'service':
-                # Show only services that this counselor offers
-                kwargs['queryset'] = request.user.counselor_profile.services.filter(is_active=True)
+                # Show global services + counselor's own services
+                kwargs['queryset'] = Service.objects.filter(
+                    Q(counselor__isnull=True) | 
+                    Q(counselor=request.user.counselor_profile)
+                )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     # -------------------------------------------------------------------------
-    # PERMISSIONS
+    # PERMISSIONS - Allow counselors to manage their own data
     # -------------------------------------------------------------------------
     
     def has_module_permission(self, request):
+        """Allow counselors to see the module in admin."""
         if request.user.is_superuser:
             return True
         return hasattr(request.user, 'counselor_profile')
     
     def has_view_permission(self, request, obj=None):
+        """Allow counselors to view records."""
         if request.user.is_superuser:
             return True
         if not hasattr(request.user, 'counselor_profile'):
             return False
         if obj is None:
             return True
+        # Check if this object belongs to the counselor
         return obj.counselor_id == request.user.counselor_profile.id
     
     def has_add_permission(self, request):
+        """Allow counselors to add records."""
         if request.user.is_superuser:
             return True
         return hasattr(request.user, 'counselor_profile')
     
     def has_change_permission(self, request, obj=None):
+        """Allow counselors to edit their own records."""
         if request.user.is_superuser:
             return True
         if not hasattr(request.user, 'counselor_profile'):
@@ -80,6 +92,7 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
         return obj.counselor_id == request.user.counselor_profile.id
     
     def has_delete_permission(self, request, obj=None):
+        """Allow counselors to delete their own records."""
         if request.user.is_superuser:
             return True
         if not hasattr(request.user, 'counselor_profile'):
@@ -90,7 +103,7 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
 
 
 # -----------------------------------------------------------------------------
-# Inlines
+# Inline for Counselor's Availability
 # -----------------------------------------------------------------------------
 
 class AvailabilityInline(admin.TabularInline):
@@ -99,16 +112,19 @@ class AvailabilityInline(admin.TabularInline):
     fields = ['day_of_week', 'start_time', 'end_time']
 
 
+# -----------------------------------------------------------------------------
+# Counselor Profile Inline (shown in User admin)
+# -----------------------------------------------------------------------------
+
 class CounselorInline(admin.StackedInline):
     model = Counselor
     can_delete = False
     verbose_name_plural = 'Counselor Profile'
-    fields = ['phone', 'photo', 'specialization', 'bio', 'services', 'is_active']
-    filter_horizontal = ['services']  # Nice widget for selecting multiple services
+    fields = ['phone', 'photo', 'specialization', 'bio', 'is_active']
 
 
 # -----------------------------------------------------------------------------
-# User Admin
+# Extended User Admin
 # -----------------------------------------------------------------------------
 
 class UserAdmin(BaseUserAdmin):
@@ -126,63 +142,20 @@ class UserAdmin(BaseUserAdmin):
         return super().get_inline_instances(request, obj)
 
 
+# Re-register User with custom admin
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 
 # -----------------------------------------------------------------------------
-# Service Admin (Only Superuser can manage)
-# -----------------------------------------------------------------------------
-
-@admin.register(Service)
-class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'duration_minutes', 'price', 'is_active', 'counselor_count']
-    list_filter = ['is_active']
-    search_fields = ['name', 'description']
-    
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'description', 'image')
-        }),
-        ('Pricing & Duration', {
-            'fields': ('duration_minutes', 'price')
-        }),
-        ('Status', {
-            'fields': ('is_active',)
-        }),
-    )
-    
-    def counselor_count(self, obj):
-        return obj.counselors.count()
-    counselor_count.short_description = 'Counselors Offering'
-    
-    def has_module_permission(self, request):
-        # Only superuser can manage services
-        return request.user.is_superuser
-    
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
-    
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-    
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-    
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-
-# -----------------------------------------------------------------------------
-# Counselor Admin
+# Counselor Admin (for superusers to manage all counselors)
 # -----------------------------------------------------------------------------
 
 @admin.register(Counselor)
 class CounselorAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'email', 'specialization', 'services_list', 'is_active', 'created_at']
-    list_filter = ['is_active', 'services']
+    list_display = ['full_name', 'email', 'specialization', 'is_active', 'created_at']
+    list_filter = ['is_active', 'specialization']
     search_fields = ['user__first_name', 'user__last_name', 'user__email', 'specialization']
-    filter_horizontal = ['services']  # Nice widget for Many-to-Many
     inlines = [AvailabilityInline]
     
     fieldsets = (
@@ -192,23 +165,16 @@ class CounselorAdmin(admin.ModelAdmin):
         ('Profile Information', {
             'fields': ('phone', 'photo', 'specialization', 'bio')
         }),
-        ('Services Offered', {
-            'fields': ('services',),
-            'description': 'Select the services this counselor offers.'
-        }),
         ('Status', {
             'fields': ('is_active',)
         }),
     )
     
-    def services_list(self, obj):
-        return ", ".join([s.name for s in obj.services.all()[:3]])
-    services_list.short_description = 'Services'
-    
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
+        # Counselors can only see their own profile
         if hasattr(request.user, 'counselor_profile'):
             return qs.filter(id=request.user.counselor_profile.id)
         return qs.none()
@@ -233,16 +199,89 @@ class CounselorAdmin(admin.ModelAdmin):
         return hasattr(request.user, 'counselor_profile') and obj.id == request.user.counselor_profile.id
     
     def has_add_permission(self, request):
+        # Only superusers can add new counselors
         return request.user.is_superuser
     
     def has_delete_permission(self, request, obj=None):
+        # Only superusers can delete counselors
         return request.user.is_superuser
+
+
+# -----------------------------------------------------------------------------
+# Service Admin
+# -----------------------------------------------------------------------------
+
+@admin.register(Service)
+class ServiceAdmin(CounselorFilteredAdmin):
+    list_display = ['name', 'counselor_display', 'duration_minutes', 'price', 'is_active']
+    list_filter = ['is_active', 'counselor']
+    search_fields = ['name', 'description']
     
-    def get_readonly_fields(self, request, obj=None):
-        """Counselors can't change their own services - only admin can"""
-        if not request.user.is_superuser:
-            return ['user', 'services']
-        return []
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'image')
+        }),
+        ('Pricing & Duration', {
+            'fields': ('duration_minutes', 'price')
+        }),
+        ('Ownership', {
+            'fields': ('counselor',),
+            'description': 'Leave empty for global service available to all counselors.'
+        }),
+        ('Status', {
+            'fields': ('is_active',)
+        }),
+    )
+    
+    def counselor_display(self, obj):
+        return obj.counselor if obj.counselor else "Global (All)"
+    counselor_display.short_description = 'Counselor'
+    
+    def get_queryset(self, request):
+        qs = super(admin.ModelAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        if hasattr(request.user, 'counselor_profile'):
+            # Show global services + own services
+            return qs.filter(
+                Q(counselor__isnull=True) | 
+                Q(counselor=request.user.counselor_profile)
+            )
+        return qs.none()
+    
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if not hasattr(request.user, 'counselor_profile'):
+            return False
+        if obj is None:
+            return True
+        # Can view global services or own services
+        return obj.counselor is None or obj.counselor_id == request.user.counselor_profile.id
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if not hasattr(request.user, 'counselor_profile'):
+            return False
+        if obj is None:
+            return True
+        # Can only edit own services, not global ones
+        if obj.counselor is None:
+            return False
+        return obj.counselor_id == request.user.counselor_profile.id
+    
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if not hasattr(request.user, 'counselor_profile'):
+            return False
+        if obj is None:
+            return True
+        # Can only delete own services, not global ones
+        if obj.counselor is None:
+            return False
+        return obj.counselor_id == request.user.counselor_profile.id
 
 
 # -----------------------------------------------------------------------------
@@ -289,13 +328,14 @@ class AppointmentAdmin(CounselorFilteredAdmin):
     def get_list_filter(self, request):
         if request.user.is_superuser:
             return ['status', 'counselor', 'service', 'appointment_date']
+        # Remove counselor filter for non-superusers
         return ['status', 'service', 'appointment_date']
 
 
 # -----------------------------------------------------------------------------
-# Admin Site Customization
+# Customize Admin Site
 # -----------------------------------------------------------------------------
 
-admin.site.site_header = "MindCare Counseling Admin"
-admin.site.site_title = "MindCare Admin"
-admin.site.index_title = "Welcome to MindCare Management Portal"
+admin.site.site_header = "STU Counseling Admin"
+admin.site.site_title = "STU Admin"
+admin.site.index_title = "Welcome to STU Management Portal"

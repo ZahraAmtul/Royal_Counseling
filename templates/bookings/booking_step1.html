@@ -4,6 +4,16 @@
 {% block title %}Book Appointment - Step 1{% endblock %}
 
 {% block content %}
+<section class="booking-hero">
+    <div class="booking-image"></div>
+    <div class="booking-content">
+        <h1 class="booking-title">Book Your Appointment</h1>
+            <p class="mb-4">
+                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
+                Approach to create <br> a enduring, sustainable and positive change in our client's life.
+            </p>
+    </div>
+</section>
 <div class="container py-5">
     <!-- Step Indicator -->
     <div class="step-indicator">
@@ -46,7 +56,7 @@
                                             {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
                                         </div>
                                         {% endif %}
-                                        <h6 class="card-title text-white mb-1">Dr. {{ counselor.full_name }}</h6>
+                                        <h6 class="card-title text-white mb-1">{{ counselor.full_name }}</h6>
                                         <small class="primary-text">{{ counselor.specialization }}</small>
                                     </div>
                                 </div>

@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Contact Us - Royal Counseling{% endblock %}
 {% block content %}
-
+<section class="contact-hero">
+    <div class="contacts-image"></div>
+    <div class="contact-content">
+        <h1 class="contact-title">Contact Us</h1>
+         <p class="mb-4">
+                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
+                Approach to create <br> a enduring, sustainable and positive change in our client's life.
+            </p>
+    </div>
+</section>
 <section class="contact-section">
   <div class="container">
-
-    <h1 class="contact-title">Contact Us</h1>
-    <p class="contact-subtitle">We’re here to help you</p>
-
     <div class="contact-wrapper">
-
-      <!-- FORM -->
       <div class="contact-form">
         <form method="POST">
           {% csrf_token %}
@@ -38,14 +41,14 @@
           <button type="submit">Send Message</button>
         </form>
       </div>
-      <div class="contact-image" data-aos="fade-up"
+      <div class="contact-image" data-aos="fade-left"
      data-aos-duration="3000"></div>
 
       <!-- INFO -->
       <div class="contact-info">
         <h3>Get in Touch</h3>
-        <p>Email: support@royalcounseling.com</p>
-        <p>Phone: +92 300 1234567</p>
+        <p class="text-dark">Email: support@royalcounseling.com</p>
+        <p class="text-dark">Phone: +92 300 1234567</p>
 
         <!-- WhatsApp -->
         <a href="https://wa.me/923001234567" target="_blank" class="whatsapp-btn">

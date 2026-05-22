@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
     path('counselors/', views.CounselorListView.as_view(), name='counselor_list'),
     path('contact/', views.ContactView.as_view(), name='contact'),
+    path('services/', views.ServicesView.as_view(), name='services'),
     # Booking flow
     path('book/', views.BookingStartView.as_view(), name='booking_start'),
     path('book/datetime/', views.BookingDateTimeView.as_view(), name='booking_datetime'),

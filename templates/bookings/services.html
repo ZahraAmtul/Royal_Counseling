@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Services - Royal Counseling{% endblock %}
+{% block content %}
+<section class="services-hero">
+    <div class="services-image"></div>
+        <div class="services-content">
+        <h1 class="services-title">OUR SERVICES</h1>
+         <p class="mb-4">
+                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
+                Approach to create <br> a enduring, sustainable and positive change in our client's life.
+            </p>
+    </div>
+    
+</section>
+<div class="services-section">
+    <div class="row g-4">
+        {% for service in services %}
+        <div class="col-md-4" data-aos="fade-up" data-aos-duration="{{ forloop.counter0|add:1 }}000">
+            <div class="service-card" {% if service.image %} style="background-image: url('{{ service.image.url }}');"{% endif %}>
+                <div class="card-overlay">
+                    <h3>{{ service.name }}</h3>
+                    <p class="duration">{{ service.duration_minutes }} Minutes</p>
+
+                    <div class="hover-content">
+                        <p>
+                            {{ service.description|default:"Professional counseling session tailored to your needs." }}
+                        </p>
+                        {% if service.price > 0 %}
+                        <h4>${{ service.price }}</h4>
+                        {% endif %}
+                        <a href="{% url 'booking_start' %}" class="btn btn-lg">Book Session</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p>Services will be displayed here.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+{% endblock %}
