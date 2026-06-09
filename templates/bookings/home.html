@@ -54,7 +54,7 @@
                             class="counselor-photo mb-3">
                         {% else %}
                         <div class="counselor-photo-placeholder mx-auto mb-3">
-                            {{ counselor.first_name.0 }}{{ counselor.last_name.0 }}
+                                {{ counselor.user.first_name.0 }}{{ counselor.user.last_name.0 }}
                         </div>
                         {% endif %}
                         <h5 class="card-title text-white">{{ counselor.full_name }}</h5>

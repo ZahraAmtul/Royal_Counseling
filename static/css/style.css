@@ -127,6 +127,8 @@ ul {
 
 .hero-section {
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
   height: 90vh;
   position: relative;
@@ -478,7 +480,8 @@ button {
   text-align: center;
   width: 100%;
   flex: 1;
-  height: 90vh;
+  min-height: 90vh;
+  height: auto;
   position: relative;
   clip-path: polygon(0% 15%,
       50% 0%,
@@ -492,7 +495,7 @@ button {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  padding: 10rem;
+  padding: 4rem 1rem;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
 }
 
@@ -521,6 +524,7 @@ button {
 
 .counselor-card {
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .counselor-card.selected {
@@ -923,9 +927,20 @@ span {
   background: #1ebe5d;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .contact-wrapper {
     grid-template-columns: 1fr;
   }
+  .counselors-section {
+        min-height: auto;
+        padding: 3rem 1rem;
+        clip-path: none;
+        border-radius: 20px;
+        background-attachment: scroll;
+  }
+}
+@media (max-width: 992px) {
+    .counselors-section {
+        min-height: 70vh;
+    }
 }

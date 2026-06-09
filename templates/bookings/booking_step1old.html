@@ -47,35 +47,17 @@
                         <div class="row g-3 mb-5" id="counselor-selection">
                             {% for counselor in counselors %}
                             <div class="col-md-6 col-lg-4">
-                                <div class="card counselor-card h-100 p-3 {% if not counselor.is_accepting_bookings %}disabled-card{% endif %}" 
-                                     data-counselor-id="{{ counselor.id }}"
-                                     {% if not counselor.is_accepting_bookings %}data-disabled="true"{% endif %}>
-                                    
-                                    {% if not counselor.is_accepting_bookings %}
-                                    <div class="unavailable-badge">
-                                        <!-- <span class="badge bg-secondary">Not Available</span> -->
-                                    </div>
-                                    {% endif %}
-                                    
+                                <div class="card counselor-card h-100 p-3" data-counselor-id="{{ counselor.id }}">
                                     <div class="card-body text-center">
                                         {% if counselor.photo %}
-                                        <img src="{{ counselor.photo.url }}" alt="{{ counselor.full_name }}" 
-                                             class="counselor-photo mb-2 {% if not counselor.is_accepting_bookings %}grayscale{% endif %}" 
-                                             style="width: 70px; height: 70px;">
+                                        <img src="{{ counselor.photo.url }}" alt="{{ counselor.full_name }}" class="counselor-photo mb-2" style="width: 70px; height: 70px;">
                                         {% else %}
-                                        <div class="counselor-photo-placeholder mx-auto mb-2 {% if not counselor.is_accepting_bookings %}disabled-placeholder{% endif %}" 
-                                             style="width: 70px; height: 70px; font-size: 1.5rem;">
-                                            {{ counselor.user.first_name.0 }}{{ counselor.user.last_name.0 }}
+                                        <div class="counselor-photo-placeholder mx-auto mb-2" style="width: 70px; height: 70px; font-size: 1.5rem;">
+                                             {{ counselor.user.first_name.0 }}{{ counselor.user.last_name.0 }}
                                         </div>
                                         {% endif %}
-                                        <h6 class="card-title mb-1">{{ counselor.full_name }}</h6>
+                                        <h6 class="card-title text-white mb-1">{{ counselor.full_name }}</h6>
                                         <small class="primary-text">{{ counselor.specialization }}</small>
-                                        
-                                        {% if not counselor.is_accepting_bookings %}
-                                        <p class="text-muted small mt-2 mb-0">
-                                            <!-- <i class="bi bi-clock"></i> Currently not accepting bookings -->
-                                        </p>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -97,11 +79,11 @@
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
                                                 <h6 class="card-title text-white mb-1">{{ service.name }}</h6>
-                                                <small class="">
+                                                <small class="text-muted">
                                                     <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} minutes
                                                 </small>
                                                 {% if service.description %}
-                                                <p class="card-text mt-2 mb-0 small">{{ service.description }}</p>
+                                                <p class="card-text mt-2 mb-0 small text-muted">{{ service.description }}</p>
                                                 {% endif %}
                                             </div>
                                             {% if service.price > 0 %}
@@ -130,37 +112,6 @@
         </div>
     </div>
 </div>
-
-<style>
-/* Disabled counselor card styles */
-.counselor-card.disabled-card {
-    opacity: 0.6;
-    cursor: not-allowed !important;
-    position: relative;
-    
-}
-
-.counselor-card.disabled-card:hover {
-    transform: none !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
-}
-
-.unavailable-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-}
-
-.grayscale {
-    filter: grayscale(100%);
-}
-
-.disabled-placeholder {
-    background: #adb5bd !important;
-}
-
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -176,16 +127,9 @@ document.addEventListener('DOMContentLoaded', function() {
         continueBtn.disabled = !(counselorInput.value && serviceInput.value);
     }
     
-    // Counselor selection (only enabled ones)
+    // Counselor selection
     counselorCards.forEach(card => {
         card.addEventListener('click', function() {
-            // Check if disabled
-            if (this.dataset.disabled === 'true') {
-                // Show tooltip or message
-                alert('This counselor is currently not accepting bookings. Please select another counselor.');
-                return;
-            }
-            
             counselorCards.forEach(c => c.classList.remove('selected'));
             this.classList.add('selected');
             counselorInput.value = this.dataset.counselorId;

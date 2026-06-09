@@ -3,12 +3,19 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Q
-from django.utils.html import format_html
 from .models import Counselor, Service, Availability, Appointment
 
 
+# -----------------------------------------------------------------------------
+# Helper Mixin for Counselor-based filtering
+# -----------------------------------------------------------------------------
+
 class CounselorFilteredAdmin(admin.ModelAdmin):
-    """Filter data based on logged-in counselor"""
+    """
+    Base admin class that filters data based on logged-in counselor.
+    - Superusers see all data
+    - Counselors only see their own data
+    """
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -36,8 +43,13 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
             if db_field.name == 'counselor':
                 kwargs['queryset'] = Counselor.objects.filter(id=request.user.counselor_profile.id)
             elif db_field.name == 'service':
+                # Show only services that this counselor offers
                 kwargs['queryset'] = request.user.counselor_profile.services.filter(is_active=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    # -------------------------------------------------------------------------
+    # PERMISSIONS
+    # -------------------------------------------------------------------------
     
     def has_module_permission(self, request):
         if request.user.is_superuser:
@@ -91,8 +103,8 @@ class CounselorInline(admin.StackedInline):
     model = Counselor
     can_delete = False
     verbose_name_plural = 'Counselor Profile'
-    fields = ['phone', 'photo', 'specialization', 'bio', 'services', 'is_active', 'is_accepting_bookings']
-    filter_horizontal = ['services']
+    fields = ['phone', 'photo', 'specialization', 'bio', 'services', 'is_active']
+    filter_horizontal = ['services']  # Nice widget for selecting multiple services
 
 
 # -----------------------------------------------------------------------------
@@ -119,7 +131,7 @@ admin.site.register(User, UserAdmin)
 
 
 # -----------------------------------------------------------------------------
-# Service Admin
+# Service Admin (Only Superuser can manage)
 # -----------------------------------------------------------------------------
 
 @admin.register(Service)
@@ -142,9 +154,10 @@ class ServiceAdmin(admin.ModelAdmin):
     
     def counselor_count(self, obj):
         return obj.counselors.count()
-    counselor_count.short_description = 'Counselors'
+    counselor_count.short_description = 'Counselors Offering'
     
     def has_module_permission(self, request):
+        # Only superuser can manage services
         return request.user.is_superuser
     
     def has_view_permission(self, request, obj=None):
@@ -166,15 +179,11 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Counselor)
 class CounselorAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'email', 'specialization', 'booking_status', 'is_active', 'created_at']
-    list_filter = ['is_active', 'is_accepting_bookings', 'services']
+    list_display = ['full_name', 'email', 'specialization', 'services_list', 'is_active', 'created_at']
+    list_filter = ['is_active', 'services']
     search_fields = ['user__first_name', 'user__last_name', 'user__email', 'specialization']
-    filter_horizontal = ['services']
+    filter_horizontal = ['services']  # Nice widget for Many-to-Many
     inlines = [AvailabilityInline]
-    list_editable = ['is_active']  # Quick toggle from list view
-    
-    # Custom action to toggle booking status
-    actions = ['enable_bookings', 'disable_bookings']
     
     fieldsets = (
         ('User Account', {
@@ -185,28 +194,16 @@ class CounselorAdmin(admin.ModelAdmin):
         }),
         ('Services Offered', {
             'fields': ('services',),
+            'description': 'Select the services this counselor offers.'
         }),
-        ('Booking Status', {
-            'fields': ('is_active', 'is_accepting_bookings'),
-            'description': 'Control whether this counselor appears on the site and can accept bookings.'
+        ('Status', {
+            'fields': ('is_active',)
         }),
     )
     
-    def booking_status(self, obj):
-        if obj.is_accepting_bookings:
-            return format_html('<span style="color: green; font-weight: bold;">✓ Accepting</span>')
-        return format_html('<span style="color: red;">✗ Not Accepting</span>')
-    booking_status.short_description = 'Booking Status'
-    
-    @admin.action(description='Enable bookings for selected counselors')
-    def enable_bookings(self, request, queryset):
-        updated = queryset.update(is_accepting_bookings=True)
-        self.message_user(request, f'{updated} counselor(s) are now accepting bookings.')
-    
-    @admin.action(description='Disable bookings for selected counselors')
-    def disable_bookings(self, request, queryset):
-        updated = queryset.update(is_accepting_bookings=False)
-        self.message_user(request, f'{updated} counselor(s) are no longer accepting bookings.')
+    def services_list(self, obj):
+        return ", ".join([s.name for s in obj.services.all()[:3]])
+    services_list.short_description = 'Services'
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -242,8 +239,9 @@ class CounselorAdmin(admin.ModelAdmin):
         return request.user.is_superuser
     
     def get_readonly_fields(self, request, obj=None):
+        """Counselors can't change their own services - only admin can"""
         if not request.user.is_superuser:
-            return ['user', 'services', 'is_accepting_bookings']
+            return ['user', 'services']
         return []
 
 
@@ -298,6 +296,6 @@ class AppointmentAdmin(CounselorFilteredAdmin):
 # Admin Site Customization
 # -----------------------------------------------------------------------------
 
-admin.site.site_header = "MindCare Counseling Admin"
-admin.site.site_title = "MindCare Admin"
-admin.site.index_title = "Welcome to MindCare Management Portal"
+admin.site.site_header = "STU Counseling Admin"
+admin.site.site_title = "STU Admin"
+admin.site.index_title = "Welcome to STU Management Portal"

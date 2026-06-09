@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, date
 
 
 class Service(models.Model):
-    """Types of counseling sessions"""
+    """Types of counseling sessions - Global services that counselors can offer"""
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     duration_minutes = models.PositiveIntegerField(
@@ -30,7 +30,7 @@ class Service(models.Model):
 
 
 class Counselor(models.Model):
-    """Psychologist/Counselor profile"""
+    """Psychologist/Counselor profile - linked to Django User"""
     user = models.OneToOneField(
         User, 
         on_delete=models.CASCADE, 
@@ -51,13 +51,6 @@ class Counselor(models.Model):
     )
     
     is_active = models.BooleanField(default=True)
-    
-    # NEW FIELD: Controls if counselor is accepting new bookings
-    is_accepting_bookings = models.BooleanField(
-        default=False,
-        help_text="Enable this to allow clients to book appointments with this counselor"
-    )
-    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -73,11 +66,6 @@ class Counselor(models.Model):
     @property
     def email(self):
         return self.user.email
-    
-    @property
-    def can_be_booked(self):
-        """Check if counselor can accept bookings"""
-        return self.is_active and self.is_accepting_bookings
 
 
 class Availability(models.Model):
@@ -142,6 +130,7 @@ class Appointment(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
+    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -152,6 +141,7 @@ class Appointment(models.Model):
         return f"{self.client_name} with {self.counselor} on {self.appointment_date} at {self.start_time}"
 
     def save(self, *args, **kwargs):
+        # Auto-calculate end time based on service duration
         if self.service and self.start_time and not self.end_time:
             start_datetime = datetime.combine(date.today(), self.start_time)
             end_datetime = start_datetime + timedelta(minutes=self.service.duration_minutes)
