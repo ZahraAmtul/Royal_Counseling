@@ -40,12 +40,15 @@ INSTALLED_APPS = [
     
     # Third party
     'crispy_forms',
+    'tinymce',
     'crispy_bootstrap5',
     
     # Local
     'bookings',
+    'blog',
 ]
 
+SITE_NAME = 'STU CONSULTANT'
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"

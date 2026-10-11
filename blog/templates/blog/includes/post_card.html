@@ -1,0 +1,24 @@
+{# Blog card. Expects `post`. #}
+<article class="blog-card h-100">
+  <a href="{{ post.get_absolute_url }}" class="blog-card-media" tabindex="-1" aria-hidden="true">
+    {% if post.featured_image %}
+      <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}" loading="lazy">
+    {% else %}
+      <span class="blog-card-placeholder"><i class="bi bi-flower1"></i></span>
+    {% endif %}
+  </a>
+  <div class="blog-card-body">
+    {% if post.category %}
+      <a class="blog-category-link" href="{{ post.category.get_absolute_url }}">{{ post.category.name }}</a>
+    {% endif %}
+    <h3 class="blog-card-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+    <p class="blog-card-excerpt">{{ post.excerpt }}</p>
+    <div class="blog-card-footer">
+      <div class="blog-meta">
+        <span><i class="bi bi-person" aria-hidden="true"></i> {{ post.author_name }}</span>
+        <time datetime="{{ post.published_at|date:'c' }}"><i class="bi bi-calendar3" aria-hidden="true"></i> {{ post.published_at|date:"M j, Y" }}</time>
+      </div>
+      <a href="{{ post.get_absolute_url }}" class="btn blog-btn-read" aria-label="Read more: {{ post.title }}">Read more</a>
+    </div>
+  </div>
+</article>

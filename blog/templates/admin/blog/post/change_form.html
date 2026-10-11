@@ -1,0 +1,25 @@
+{% extends "admin/change_form.html" %}
+{% load admin_modify %}
+
+{% block submit_buttons_bottom %}
+  {% submit_row %}
+  {% if has_change_permission or has_add_permission %}
+  <div class="submit-row blog-publish-row">
+    {% if original and original.status == "published" %}
+      <input type="submit" value="Save and keep published" name="_publish" class="default">
+      <input type="submit" value="Unpublish (move to draft)" name="_unpublish">
+    {% else %}
+      <input type="submit" value="Publish" name="_publish" class="default">
+      <input type="submit" value="Save as draft" name="_save_draft">
+    {% endif %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .blog-publish-row { justify-content: flex-start; margin-top: 0; border-top: 0; }
+    .blog-publish-row input[name="_unpublish"] { background: var(--delete-button-bg, #ba2121); color: #fff; }
+  </style>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ post.page_title }} | {{ site_name }}{% endblock %}
+
+{% block meta %}
+  <meta name="description" content="{{ post.page_description }}">
+  {% if is_preview %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  <link rel="canonical" href="{{ canonical_url }}">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="{{ site_name }}">
+  <meta property="og:title" content="{{ post.page_title }}">
+  <meta property="og:description" content="{{ post.page_description }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  {% if og_image %}
+    <meta property="og:image" content="{{ og_image }}">
+    <meta property="og:image:alt" content="{{ post.featured_image_alt|default:post.title }}">
+  {% endif %}
+  {% if post.published_at %}<meta property="article:published_time" content="{{ post.published_at|date:'c' }}">{% endif %}
+  <meta property="article:modified_time" content="{{ post.updated_at|date:'c' }}">
+  {% if post.category %}<meta property="article:section" content="{{ post.category.name }}">{% endif %}
+  {% for tag in post.tags.all %}<meta property="article:tag" content="{{ tag.name }}">{% endfor %}
+  <meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
+  <meta name="twitter:title" content="{{ post.page_title }}">
+  <meta name="twitter:description" content="{{ post.page_description }}">
+  {% if og_image %}<meta name="twitter:image" content="{{ og_image }}">{% endif %}
+  {% if not is_preview %}<script type="application/ld+json">{{ structured_data|safe }}</script>{% endif %}
+{% endblock %}
+
+{% block extra_css %}{{ block.super }}{% include "blog/includes/head_assets.html" %}{% endblock %}
+
+{% block content %}
+<section class="blog-hero">
+    <div class="blog-image"></div>
+    <div class="blog-content">
+        <a href="{% url 'blog:list' %}" class="blog-back-link"><i class="bi bi-arrow-left" aria-hidden="true"></i> All articles</a>
+        <h1 class="blog-page-title">{{ post.title }}</h1>
+        <p class="blog-page-intro">{{ post.intro }}</p>
+    </div>
+</section>
+<div class="blog-page">
+  {% if is_preview %}
+    <div class="blog-preview-banner" role="status">
+      <i class="bi bi-eye" aria-hidden="true"></i>
+      Preview: this post is {% if post.status == "draft" %}a draft{% else %}scheduled for {{ post.published_at|date:"M j, Y H:i" }}{% endif %} and is not visible to visitors.
+    </div>
+  {% endif %}
+
+  <article class="blog-article">
+    <header class="blog-article-header container">
+      <nav aria-label="Breadcrumb">
+        <ol class="blog-breadcrumb">
+          <li><a href="{% url 'blog:list' %}">Blog</a></li>
+          {% if post.category %}<li><a href="{{ post.category.get_absolute_url }}">{{ post.category.name }}</a></li>{% endif %}
+        </ol>
+      </nav>
+      <h1 class="blog-article-title">{{ post.title }}</h1>
+      <div class="blog-byline">
+        {% if post.counselor and post.counselor.photo %}
+          <img src="{{ post.counselor.photo.url }}" alt="" class="blog-avatar">
+        {% elif post.counselor %}
+          <span class="blog-avatar blog-avatar-initials" aria-hidden="true">{{ post.counselor.user.first_name.0 }}{{ post.counselor.user.last_name.0 }}</span>
+        {% else %}
+          <span class="blog-avatar blog-avatar-initials" aria-hidden="true"><i class="bi bi-people"></i></span>
+        {% endif %}
+        <div>
+          <span class="blog-byline-name">{{ post.author_name }}</span>
+          <span class="blog-byline-detail">
+            {% if post.published_at %}<time datetime="{{ post.published_at|date:'c' }}">{{ post.published_at|date:"F j, Y" }}</time>,{% endif %}
+            {{ post.reading_time }} min read
+          </span>
+        </div>
+      </div>
+    </header>
+
+    {% if post.featured_image %}
+      <figure class="blog-article-image container">
+        <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}">
+      </figure>
+    {% endif %}
+
+    <div class="container">
+      {# Content is sanitised with an allow-list on every save (blog/sanitizer.py). #}
+      <div class="blog-content">{{ post.content|safe }}</div>
+
+      <footer class="blog-article-footer">
+        {% with tags=post.tags.all %}
+          {% if tags %}
+            <div class="blog-tags" aria-label="Tags">
+              {% for tag in tags %}<a href="{{ tag.get_absolute_url }}" class="blog-tag">#{{ tag.name }}</a>{% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="blog-engagement" id="engagement">
+          {% if not is_preview %}
+            <form method="post" action="{% url 'blog:like' post.slug %}" class="blog-like-form" data-like-form>
+              {% csrf_token %}
+              <button type="submit" class="blog-like-btn{% if user_liked %} is-liked{% endif %}"
+                      aria-pressed="{% if user_liked %}true{% else %}false{% endif %}" data-like-btn>
+                <i class="bi {% if user_liked %}bi-heart-fill{% else %}bi-heart{% endif %}" aria-hidden="true" data-like-icon></i>
+                <span data-like-label>{% if user_liked %}Liked{% else %}Like{% endif %}</span>
+                <span class="blog-like-count" data-like-count aria-live="polite">{{ like_total }}</span>
+              </button>
+            </form>
+          {% endif %}
+          <a href="#comments" class="blog-comment-jump">
+            <i class="bi bi-chat" aria-hidden="true"></i> {{ comment_total }} comment{{ comment_total|pluralize }}
+          </a>
+        </div>
+      </footer>
+
+      <aside class="blog-cta">
+        <div>
+          <h2>Would it help to talk it through?</h2>
+          <p>{% if post.counselor and post.counselor.can_be_booked %}{{ post.counselor.full_name }} and our other counselors{% else %}Our counselors{% endif %} offer confidential one-to-one sessions.</p>
+        </div>
+        <a href="{% url 'booking_start' %}" class="btn btn-lg">Book an Appointment</a>
+      </aside>
+
+      {% if not is_preview %}
+      <section class="blog-comments" id="comments" aria-labelledby="comments-title">
+        <h2 id="comments-title">Comments{% if comment_total %} ({{ comment_total }}){% endif %}</h2>
+
+        {% for comment in comments %}
+          <div class="blog-comment" id="comment-{{ comment.pk }}">
+            <div class="blog-comment-head">
+              <span class="blog-comment-name">{{ comment.name }}</span>
+              <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"M j, Y" }}</time>
+            </div>
+            <p class="blog-comment-body">{{ comment.body|linebreaksbr }}</p>
+            {% for reply in comment.replies.all %}
+              <div class="blog-comment blog-reply" id="comment-{{ reply.pk }}">
+                <div class="blog-comment-head">
+                  <span class="blog-comment-name">{{ reply.name }}</span>
+                  {% if reply.is_staff_reply %}<span class="blog-staff-badge">Counselor reply</span>{% endif %}
+                  <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|date:"M j, Y" }}</time>
+                </div>
+                <p class="blog-comment-body">{{ reply.body|linebreaksbr }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% empty %}
+          <p class="blog-muted">No comments yet. Share your thoughts below.</p>
+        {% endfor %}
+
+        {% if post.allow_comments %}
+          <form method="post" action="{{ post.get_absolute_url }}#comment-form" id="comment-form" class="blog-comment-form" novalidate data-comment-form>
+            {% csrf_token %}
+            <h3>Leave a comment</h3>
+            <p class="blog-muted small">Comments are reviewed before they appear. Please don't share personal health details you'd like to keep private.</p>
+
+            {% if comment_form.non_field_errors %}
+              <div class="alert alert-warning" role="alert">{% for e in comment_form.non_field_errors %}{{ e }} {% endfor %}</div>
+            {% endif %}
+            {% if comment_form.form_token.errors %}
+              <div class="alert alert-warning" role="alert">{{ comment_form.form_token.errors.0 }}</div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ comment_form.name.id_for_label }}" class="form-label">Name</label>
+              {{ comment_form.name }}
+              {% for e in comment_form.name.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+              <label for="{{ comment_form.body.id_for_label }}" class="form-label">Comment</label>
+              {{ comment_form.body }}
+              <div class="form-text"><span data-char-count>0</span> / 2000 characters</div>
+              {% for e in comment_form.body.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="blog-hp" aria-hidden="true">
+              <label for="{{ comment_form.website.id_for_label }}">Leave this field empty</label>
+              {{ comment_form.website }}
+            </div>
+            <input type="hidden" name="form_token" value="{{ form_token }}">
+            <button type="submit" class="btn" data-submit-btn>Submit comment</button>
+          </form>
+        {% else %}
+          <p class="blog-muted">Comments are closed for this article.</p>
+        {% endif %}
+      </section>
+      {% endif %}
+    </div>
+  </article>
+
+  {% if related_posts %}
+  <section class="blog-related" aria-labelledby="related-title">
+    <div class="container">
+      <h2 id="related-title">Related articles</h2>
+      <div class="row g-4">
+        {% for post in related_posts %}
+          <div class="col-md-6 col-lg-4">{% include "blog/includes/post_card.html" %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'blog/js/blog.js' %}"></script>
+{% endblock %}

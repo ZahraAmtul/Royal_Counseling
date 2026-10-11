@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if current_category %}{{ current_category.name }} articles{% elif current_tag %}Articles tagged “{{ current_tag.name }}”{% else %}Blog{% endif %} | {{ site_name }}{% endblock %}
+
+{% block meta %}
+  <meta name="description" content="{% if current_category.description %}{{ current_category.description|truncatechars:160 }}{% else %}Articles on mental health, anxiety, stress, relationships and personal growth from the counselors at {{ site_name }}.{% endif %}">
+  <link rel="canonical" href="{{ canonical_url }}{% if page_obj.number > 1 %}?page={{ page_obj.number }}{% endif %}">
+  {% if query %}<meta name="robots" content="noindex, follow">{% endif %}
+{% endblock %}
+
+{% block extra_css %}{{ block.super }}{% include "blog/includes/head_assets.html" %}{% endblock %}
+
+{% block content %}
+<section class="blog-hero">
+    <div class="blog-image"></div>
+    <div class="blog-content">
+          {% if current_category or current_tag %}
+            <a href="{% url 'blog:list' %}" class="blog-back-link"><i class="bi bi-arrow-left" aria-hidden="true"></i> All articles</a>
+          {% endif %}
+          <h1 class="blog-page-title">
+            {% if current_category %}{{ current_category.name }}{% elif current_tag %}{{ current_tag.name }}{% else %}Blog{% endif %}
+          </h1>
+          <div class="blog-page-intro">
+            {% if current_category.description %}{{ current_category.description }}
+            {% elif current_tag %}Articles tagged “{{ current_tag.name }}”.
+            {% else %}Practical, compassionate reading on mental health and wellbeing, from our counselors.{% endif %}
+          </div>
+        
+        <div class="blog-search-container">
+          <form method="get" action="{{ request.path }}" class="blog-search" role="search">
+            <label for="blog-search-input" class="visually-hidden">Search articles</label>
+            <i class="bi bi-search mt-2" aria-hidden="true"></i>
+            <input id="blog-search-input" type="search" name="q" value="{{ query }}" maxlength="100"
+                   class="form-control" placeholder="Search articles">
+            <button type="submit" class="btn">Search</button>
+          </form>
+        </div>
+      
+      {% if categories %}
+      <nav class="blog-categories" aria-label="Categories">
+        <a href="{% url 'blog:list' %}" class="blog-chip{% if not current_category and not current_tag %} is-active{% endif %}"
+           {% if not current_category and not current_tag %}aria-current="page"{% endif %}>All</a>
+        {% for cat in categories %}
+          <a href="{{ cat.get_absolute_url }}" class="blog-chip{% if current_category == cat %} is-active{% endif %}"
+             {% if current_category == cat %}aria-current="page"{% endif %}>{{ cat.name }} <span>{{ cat.post_total }}</span></a>
+        {% endfor %}
+      </nav>
+      {% endif %}
+    
+    </div>
+</section>
+<div class="blog-page">
+  <div class="container blog-list-body">
+    {% if featured_post %}
+      <article class="blog-featured">
+        <a href="{{ featured_post.get_absolute_url }}" class="blog-featured-media" tabindex="-1" aria-hidden="true">
+          {% if featured_post.featured_image %}
+            <img src="{{ featured_post.featured_image.url }}" alt="{{ featured_post.featured_image_alt|default:featured_post.title }}">
+          {% else %}
+            <span class="blog-card-placeholder"><i class="bi bi-flower1"></i></span>
+          {% endif %}
+        </a>
+        <div class="blog-featured-body">
+          <p class="blog-featured-flag"><i class="bi bi-star" aria-hidden="true"></i> Featured article</p>
+          {% if featured_post.category %}
+            <a class="blog-category-link" href="{{ featured_post.category.get_absolute_url }}">{{ featured_post.category.name }}</a>
+          {% endif %}
+          <h2 class="blog-featured-title"><a href="{{ featured_post.get_absolute_url }}">{{ featured_post.title }}</a></h2>
+          <p class="blog-featured-excerpt">{{ featured_post.excerpt }}</p>
+          <div class="blog-meta mb-3">
+            <span><i class="bi bi-person" aria-hidden="true"></i> {{ featured_post.author_name }}</span>
+            <time datetime="{{ featured_post.published_at|date:'c' }}"><i class="bi bi-calendar3" aria-hidden="true"></i> {{ featured_post.published_at|date:"M j, Y" }}</time>
+            <span><i class="bi bi-clock" aria-hidden="true"></i> {{ featured_post.reading_time }} min read</span>
+          </div>
+          <a href="{{ featured_post.get_absolute_url }}" class="btn">Read article</a>
+        </div>
+      </article>
+    {% endif %}
+
+    {% if query %}
+      <p class="blog-result-note">
+        {{ paginator.count }} result{{ paginator.count|pluralize }} for “{{ query }}”{% if current_category %} in {{ current_category.name }}{% endif %}.
+        <a href="{{ request.path }}">Clear search</a>
+      </p>
+    {% endif %}
+
+    {% if posts %}
+      <div class="row g-4">
+        {% for post in posts %}
+          <div class="col-md-6 col-lg-4">{% include "blog/includes/post_card.html" %}</div>
+        {% endfor %}
+      </div>
+      {% include "blog/includes/pagination.html" %}
+    {% elif not featured_post %}
+      <div class="blog-empty">
+        <i class="bi bi-journal-text" aria-hidden="true"></i>
+        {% if query %}
+          <h2>No articles match “{{ query }}”</h2>
+          <p>Try a shorter word, or browse a category above.</p>
+          <a href="{{ request.path }}" class="btn">Clear search</a>
+        {% else %}
+          <h2>No articles here yet</h2>
+          <p>New articles will appear here as soon as they're published.</p>
+          {% if current_category or current_tag %}<a href="{% url 'blog:list' %}" class="btn">See all articles</a>{% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
