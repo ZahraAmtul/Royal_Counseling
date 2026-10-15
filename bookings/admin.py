@@ -192,6 +192,7 @@ class CounselorAdmin(admin.ModelAdmin):
         }),
     )
 
+
     def booking_status(self, obj):
         if obj.is_accepting_bookings:
             return mark_safe('<span style="color: green; font-weight: bold;">✓ Accepting</span>')
