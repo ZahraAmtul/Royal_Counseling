@@ -15,10 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth.models import User, Group
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+admin.site.site_header = "STU CONSULTANT Admin"
+admin.site.site_title = "STU CONSULTANT"
+admin.site.index_title = "STU CONSULTANT  Site Administration"
+admin.site.unregister(Group)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('bookings.urls')),
@@ -27,4 +31,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Q
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from .models import Counselor, Service, Availability, Appointment
 
 
@@ -191,11 +191,13 @@ class CounselorAdmin(admin.ModelAdmin):
             'description': 'Control whether this counselor appears on the site and can accept bookings.'
         }),
     )
-    
+
+
     def booking_status(self, obj):
         if obj.is_accepting_bookings:
-            return format_html('<span style="color: green; font-weight: bold;">✓ Accepting</span>')
-        return format_html('<span style="color: red;">✗ Not Accepting</span>')
+            return mark_safe('<span style="color: green; font-weight: bold;">✓ Accepting</span>')
+        return mark_safe('<span style="color: red;">✗ Not Accepting</span>')
+
     booking_status.short_description = 'Booking Status'
     
     @admin.action(description='Enable bookings for selected counselors')
