@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.utils.safestring import mark_safe
-from .models import Counselor, Service, Availability, Appointment
+from .models import Counselor, Service, Availability, Appointment, ContactMessage
 
 
 class CounselorFilteredAdmin(admin.ModelAdmin):
@@ -294,6 +294,32 @@ class AppointmentAdmin(CounselorFilteredAdmin):
         if request.user.is_superuser:
             return ['status', 'counselor', 'service', 'appointment_date']
         return ['status', 'service', 'appointment_date']
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "email",
+        "subject",
+        "created_at",
+        "is_responded",
+    )
+
+    list_filter = ("is_responded", "created_at")
+    search_fields = ("name", "email", "subject", "message")
+    list_editable = ("is_responded",)
+    readonly_fields = ("created_at",)
+    ordering = ("-created_at",)
+
+    fieldsets = (
+        ("Contact Details", {
+            "fields": ("name", "email", "subject", "message", "created_at")
+        }),
+        ("Response Tracking", {
+            "fields": ("is_responded", "response")
+        }),
+    )
+
 
 
 # -----------------------------------------------------------------------------

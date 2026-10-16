@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db import transaction
 from datetime import datetime, date, timedelta
 
-from .models import Counselor, Service, Appointment, Availability
+from .models import Counselor, Service, Appointment, Availability, ContactMessage
 from .forms import AppointmentBookingForm
 from .utils import get_available_slots, get_counselor_available_dates, is_slot_available
 
@@ -275,9 +275,71 @@ class AppointmentCancelView(View):
         
         messages.success(request, 'Your appointment has been cancelled.')
         return redirect('home')
-class ContactView(TemplateView):
-    """Contact page"""
+
+class ContactView(View):
+    """Display the contact page and save submitted messages."""
+
     template_name = 'bookings/contact.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
+
+    def post(self, request):
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not name or not email or not message:
+            messages.error(
+                request,
+                'Please fill in your name, email, and message.'
+            )
+            return redirect('contact')
+
+        ContactMessage.objects.create(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message,
+        )
+
+        messages.success(
+            request,
+            'Your message has been submitted successfully!'
+        )
+
+        return redirect('contact')
+
+
+def contact(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        subject = request.POST.get("subject", "").strip()
+        message = request.POST.get("message", "").strip()
+
+        if not name or not email or not message:
+            messages.error(
+                request,
+                "Please fill in your name, email, and message."
+            )
+            return redirect("contact")
+
+        ContactMessage.objects.create(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message,
+        )
+
+        messages.success(
+            request,
+            "Your message has been sent successfully!"
+        )
+        return redirect("contact")
+
+    return render(request, "contact.html")
 
 class ServicesView(TemplateView):
     """Services page"""

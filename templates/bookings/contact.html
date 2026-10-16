@@ -1,49 +1,85 @@
 {% extends "base.html" %}
-{% block title %}Contact Us - Royal Counseling{% endblock %}
+{% block title %}Contact Us - STU CONSULTANT{% endblock %}
 {% block content %}
 <section class="contact-hero">
-    <div class="contacts-image"></div>
-    <div class="contact-content">
-        <h1 class="contact-title">Contact Us</h1>
-         <p class="mb-4">
-                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
-                Approach to create <br> a enduring, sustainable and positive change in our client's life.
-            </p>
-    </div>
+  <div class="contacts-image"></div>
+  <div class="contact-content">
+    <h1 class="contact-title">Contact Us</h1>
+    <p class="mb-4">
+      Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
+      Approach to create <br> a enduring, sustainable and positive change in our client's life.
+    </p>
+  </div>
 </section>
 <section class="contact-section">
   <div class="container">
     <div class="contact-wrapper">
+      <div class="contact-type-art" data-aos="fade-up">
+    <span class="type-eyebrow">STU CONSULTANT — LET'S CONNECT</span>
+
+    <h2 class="type-heading">
+        Sometimes,<br>
+        the first step<br>
+        is simply
+        <span class="type-highlight">
+            <span class="type-word">talking.</span>
+            <span class="type-word">healing.</span>
+            <span class="type-word">beginning.</span>
+        </span>
+    </h2>
+
+    <div class="type-underline"></div>
+
+    <p class="type-description">
+        You don't have to figure everything out alone.
+        We're here to listen.
+    </p>
+
+    <div class="type-footer">
+        <span class="type-dot"></span>
+        <span>A safe space to begin</span>
+    </div>
+</div>
       <div class="contact-form">
-        <form method="POST">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}"
+          role="alert">
+          {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        <form method="POST" action="{% url 'contact' %}">
           {% csrf_token %}
 
           <div class="input-group">
-            <input type="text" name="name" required>
-            <label>Your Name</label>
+            <input type="text" id="name" name="name" maxlength="100" autocomplete="name" required>
+            <label for="name">Your Name *</label>
           </div>
 
           <div class="input-group">
-            <input type="email" name="email" required>
-            <label>Your Email</label>
+            <input type="email" id="email" name="email" maxlength="254" autocomplete="email" required>
+            <label for="email">Your Email *</label>
           </div>
 
           <div class="input-group">
-            <input type="text" name="subject">
-            <label>Subject</label>
+            <input type="text" id="subject" name="subject" maxlength="200">
+            <label for="subject">Subject (optional)</label>
           </div>
 
           <div class="input-group">
-            <textarea name="message" rows="5" required></textarea>
-            <label>Your Message</label>
+            <textarea id="message" name="message" rows="5" maxlength="10000" required></textarea>
+            <label for="message">Your Message *</label>
           </div>
 
-          <button type="submit">Send Message</button>
+          <button type="submit" class="submit-btn">
+            Send Message &rarr;
+          </button>
         </form>
-      </div>
-      <div class="contact-image" data-aos="fade-left"
-     data-aos-duration="3000"></div>
 
+
+      </div>
+      <!-- <div class="contact-image" data-aos="fade-left" data-aos-duration="3000"></div> -->
       <!-- INFO -->
       <div class="contact-info">
         <h3>Get in Touch</h3>
