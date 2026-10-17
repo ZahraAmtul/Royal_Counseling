@@ -11,6 +11,12 @@ from datetime import datetime, date, timedelta
 from .models import Counselor, Service, Appointment, Availability, ContactMessage
 from .forms import AppointmentBookingForm
 from .utils import get_available_slots, get_counselor_available_dates, is_slot_available
+from django.db.models import Case, When, IntegerField
+
+
+def bookable_counselors():
+    """Counselors allowed in the booking flow (hides e.g. the Admin/Founder)."""
+    return Counselor.objects.filter(is_active=True, show_on_booking_page=True)
 
 
 class HomeView(TemplateView):
@@ -30,6 +36,11 @@ class CounselorListView(ListView):
     template_name = 'bookings/counselor_list.html'
     context_object_name = 'counselors'
     queryset = Counselor.objects.filter(is_active=True)
+    
+    def get_queryset(self):
+        return Counselor.objects.filter(is_active=True).annotate(
+            has_role=Case(When(role_label="", then=1), default=0, output_field=IntegerField())
+        ).order_by('has_role', 'user__first_name')
 
 
 class BookingStartView(View):
@@ -41,7 +52,7 @@ class BookingStartView(View):
             request.session.pop(key, None)
         
         # Show ALL active counselors (both accepting and not accepting bookings)
-        counselors = Counselor.objects.filter(is_active=True).order_by('-is_accepting_bookings', 'user__first_name')
+        counselors = bookable_counselors().order_by('-is_accepting_bookings', 'user__first_name')
         services = Service.objects.filter(is_active=True)
         
         return render(request, self.template_name, {
@@ -59,8 +70,8 @@ class BookingStartView(View):
         
         # VALIDATION: Check if counselor is accepting bookings
         try:
-            counselor = Counselor.objects.get(id=counselor_id, is_active=True)
-            if not counselor.is_accepting_bookings:
+            counselor = bookable_counselors().get(id=counselor_id)
+            if not counselor.can_be_booked:
                 messages.error(request, f'Sorry, {counselor.full_name} is currently not accepting bookings. Please select another counselor.')
                 return redirect('booking_start')
         except Counselor.DoesNotExist:
@@ -85,11 +96,11 @@ class BookingDateTimeView(View):
             messages.warning(request, 'Please start the booking process from the beginning.')
             return redirect('booking_start')
         
-        counselor = get_object_or_404(Counselor, id=counselor_id, is_active=True)
+        counselor = get_object_or_404(bookable_counselors(), id=counselor_id)
         service = get_object_or_404(Service, id=service_id, is_active=True)
         
         # Double-check counselor is still accepting bookings
-        if not counselor.is_accepting_bookings:
+        if not counselor.can_be_booked:
             messages.error(request, f'Sorry, {counselor.full_name} is no longer accepting bookings.')
             return redirect('booking_start')
         
@@ -127,14 +138,14 @@ class GetAvailableSlotsView(View):
             return JsonResponse({'error': 'Missing parameters'}, status=400)
         
         try:
-            counselor = Counselor.objects.get(id=counselor_id, is_active=True)
+            counselor = bookable_counselors().get(id=counselor_id)
             service = Service.objects.get(id=service_id, is_active=True)
             selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except (Counselor.DoesNotExist, Service.DoesNotExist, ValueError):
             return JsonResponse({'error': 'Invalid data'}, status=400)
         
         # Check if counselor is accepting bookings
-        if not counselor.is_accepting_bookings:
+        if not counselor.can_be_booked:
             return JsonResponse({'error': 'Counselor not accepting bookings', 'slots': []})
         
         if selected_date < date.today():
@@ -168,11 +179,11 @@ class BookingConfirmView(View):
             messages.warning(request, 'Please start the booking process from the beginning.')
             return redirect('booking_start')
         
-        counselor = get_object_or_404(Counselor, id=counselor_id, is_active=True)
+        counselor = get_object_or_404(bookable_counselors(), id=counselor_id)
         service = get_object_or_404(Service, id=service_id, is_active=True)
         
         # Final check - counselor still accepting bookings
-        if not counselor.is_accepting_bookings:
+        if not counselor.can_be_booked:
             messages.error(request, f'Sorry, {counselor.full_name} is no longer accepting bookings.')
             return redirect('booking_start')
         
@@ -203,11 +214,11 @@ class BookingConfirmView(View):
             messages.warning(request, 'Session expired. Please start over.')
             return redirect('booking_start')
         
-        counselor = get_object_or_404(Counselor, id=counselor_id, is_active=True)
+        counselor = get_object_or_404(bookable_counselors(), id=counselor_id)
         service = get_object_or_404(Service, id=service_id, is_active=True)
         
         # Final validation
-        if not counselor.is_accepting_bookings:
+        if not counselor.can_be_booked:
             messages.error(request, f'Sorry, {counselor.full_name} is no longer accepting bookings.')
             return redirect('booking_start')
         

@@ -7,7 +7,7 @@ from .models import Appointment, Counselor, Service
 class CounselorSelectForm(forms.Form):
     """Form to select a counselor"""
     counselor = forms.ModelChoiceField(
-        queryset=Counselor.objects.filter(is_active=True),
+        queryset=Counselor.objects.filter(is_active=True, show_on_booking_page=True),
         widget=forms.RadioSelect,
         empty_label=None
     )

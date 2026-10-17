@@ -91,7 +91,7 @@ class CounselorInline(admin.StackedInline):
     model = Counselor
     can_delete = False
     verbose_name_plural = 'Counselor Profile'
-    fields = ['phone', 'photo', 'specialization', 'bio', 'services', 'is_active', 'is_accepting_bookings']
+    fields = ['phone', 'photo', 'specialization', 'role_label', 'bio', 'services','is_active', 'is_accepting_bookings', 'show_on_booking_page']
     filter_horizontal = ['services']
 
 
@@ -166,8 +166,8 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Counselor)
 class CounselorAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'email', 'specialization', 'booking_status', 'is_active', 'created_at']
-    list_filter = ['is_active', 'is_accepting_bookings', 'services']
+    list_display = ['full_name', 'email', 'specialization', 'role_label', 'booking_status', 'show_on_booking_page', 'is_active', 'created_at']
+    list_filter = ['is_active', 'is_accepting_bookings', 'show_on_booking_page', 'services']
     search_fields = ['user__first_name', 'user__last_name', 'user__email', 'specialization']
     filter_horizontal = ['services']
     inlines = [AvailabilityInline]
@@ -177,21 +177,19 @@ class CounselorAdmin(admin.ModelAdmin):
     actions = ['enable_bookings', 'disable_bookings']
     
     fieldsets = (
-        ('User Account', {
-            'fields': ('user',)
-        }),
-        ('Profile Information', {
-            'fields': ('phone', 'photo', 'specialization', 'bio')
-        }),
-        ('Services Offered', {
-            'fields': ('services',),
-        }),
-        ('Booking Status', {
-            'fields': ('is_active', 'is_accepting_bookings'),
-            'description': 'Control whether this counselor appears on the site and can accept bookings.'
-        }),
-    )
+    ('User Account', {'fields': ('user',)}),
+    ('Profile Information', {'fields': ('phone', 'photo', 'specialization', 'role_label', 'bio')}),
+    ('Services Offered', {'fields': ('services',)}),
+    ('Booking Status', {
+        'fields': ('is_active', 'is_accepting_bookings', 'show_on_booking_page'),
+        'description': 'Control whether this counselor appears on the site and can accept bookings.'
+    }),)
 
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+        # Counselors can't hide themselves from booking or give themselves a role label
+            return ['user', 'services', 'is_accepting_bookings', 'show_on_booking_page', 'role_label']
+        return []
 
     def booking_status(self, obj):
         if obj.is_accepting_bookings:
@@ -242,11 +240,6 @@ class CounselorAdmin(admin.ModelAdmin):
     
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
-    
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
-            return ['user', 'services', 'is_accepting_bookings']
-        return []
 
 
 # -----------------------------------------------------------------------------

@@ -57,27 +57,32 @@ class Counselor(models.Model):
         default=False,
         help_text="Enable this to allow clients to book appointments with this counselor"
     )
-    
+    role_label = models.CharField(
+        max_length=60, blank=True,
+        help_text='Optional badge on the counselors page, e.g. "Admin and Founder".'
+    )
+    show_on_booking_page = models.BooleanField(
+        default=True,
+        help_text="Uncheck to hide this person from the booking flow (they still appear on the counselors page)."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['user__first_name', 'user__last_name']
 
     def __str__(self):
-        return f"Dr. {self.user.get_full_name() or self.user.username}"
+        return f"{self.user.get_full_name() or self.user.username}"
 
     @property
     def full_name(self):
         return self.user.get_full_name() or self.user.username
-    
-    @property
-    def email(self):
-        return self.user.email
-    
     @property
     def can_be_booked(self):
         """Check if counselor can accept bookings"""
-        return self.is_active and self.is_accepting_bookings
+        return self.is_active and self.is_accepting_bookings and self.show_on_booking_page
+    @property
+    def email(self):
+        return self.user.email
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
