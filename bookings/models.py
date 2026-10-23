@@ -32,8 +32,8 @@ class Service(models.Model):
 class Counselor(models.Model):
     """Psychologist/Counselor profile"""
     user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='counselor_profile',
         help_text="Link to Django user account for login"
     )
@@ -41,7 +41,7 @@ class Counselor(models.Model):
     photo = models.ImageField(upload_to='counselors/', blank=True, null=True)
     specialization = models.CharField(max_length=200, help_text="e.g., Anxiety, Depression, Couples Therapy")
     bio = models.TextField(blank=True)
-    
+
     # Many-to-Many: Counselor can offer multiple services
     services = models.ManyToManyField(
         Service,
@@ -49,35 +49,62 @@ class Counselor(models.Model):
         blank=True,
         help_text="Select services this counselor offers"
     )
-    
+
     is_active = models.BooleanField(default=True)
-    
+
     # NEW FIELD: Controls if counselor is accepting new bookings
     is_accepting_bookings = models.BooleanField(
         default=False,
         help_text="Enable this to allow clients to book appointments with this counselor"
     )
-    
+    role_label = models.CharField(
+        max_length=60, blank=True,
+        help_text='Optional badge on the counselors page, e.g. "Admin and Founder".'
+    )
+    show_on_booking_page = models.BooleanField(
+        default=True,
+        help_text="Uncheck to hide this person from the booking flow (they still appear on the counselors page)."
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['user__first_name', 'user__last_name']
 
     def __str__(self):
-        return f"Dr. {self.user.get_full_name() or self.user.username}"
+        return f"{self.user.get_full_name() or self.user.username}"
 
     @property
     def full_name(self):
         return self.user.get_full_name() or self.user.username
-    
+
     @property
     def email(self):
         return self.user.email
-    
+
     @property
     def can_be_booked(self):
         """Check if counselor can accept bookings"""
-        return self.is_active and self.is_accepting_bookings
+        return self.is_active and self.is_accepting_bookings and self.show_on_booking_page
+
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=200, blank=True)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_responded = models.BooleanField(default=False)
+    response = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Contact Message"
+        verbose_name_plural = "Contact Messages"
+
+    def __str__(self):
+        return f"{self.name} - {self.email}"
 
 
 class Availability(models.Model):
@@ -93,8 +120,8 @@ class Availability(models.Model):
     ]
 
     counselor = models.ForeignKey(
-        Counselor, 
-        on_delete=models.CASCADE, 
+        Counselor,
+        on_delete=models.CASCADE,
         related_name='availabilities'
     )
     day_of_week = models.IntegerField(choices=DAYS_OF_WEEK)
@@ -127,21 +154,21 @@ class Appointment(models.Model):
 
     # Appointment details
     counselor = models.ForeignKey(
-        Counselor, 
-        on_delete=models.CASCADE, 
+        Counselor,
+        on_delete=models.CASCADE,
         related_name='appointments'
     )
     service = models.ForeignKey(
-        Service, 
-        on_delete=models.CASCADE, 
+        Service,
+        on_delete=models.CASCADE,
         related_name='appointments'
     )
     appointment_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
