@@ -222,10 +222,12 @@ class PostAdmin(CounselorFilteredAdmin):
     @admin.display(description="Status", ordering="status")
     def status_badge(self, obj):
         if obj.status == Post.Status.DRAFT:
-            return format_html('<span style="color:#6c757d;font-weight:600;">Draft</span>')
-        if not obj.is_live:
-            return format_html('<span style="color:#b26a00;font-weight:600;">Scheduled</span>')
-        return format_html('<span style="color:#2e7d32;font-weight:600;">Published</span>')
+            color, label = "#6c757d", "Draft"
+        elif not obj.is_live:
+            color, label = "#b26a00", "Scheduled"
+        else:
+            color, label = "#2e7d32", "Published"
+        return format_html('<span style="color:{};font-weight:600;">{}</span>', color, label)
 
     @admin.display(description="Likes", ordering="_likes")
     def like_count(self, obj):

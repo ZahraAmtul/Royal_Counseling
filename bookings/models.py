@@ -32,8 +32,8 @@ class Service(models.Model):
 class Counselor(models.Model):
     """Psychologist/Counselor profile"""
     user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='counselor_profile',
         help_text="Link to Django user account for login"
     )
@@ -41,7 +41,7 @@ class Counselor(models.Model):
     photo = models.ImageField(upload_to='counselors/', blank=True, null=True)
     specialization = models.CharField(max_length=200, help_text="e.g., Anxiety, Depression, Couples Therapy")
     bio = models.TextField(blank=True)
-    
+
     # Many-to-Many: Counselor can offer multiple services
     services = models.ManyToManyField(
         Service,
@@ -49,9 +49,9 @@ class Counselor(models.Model):
         blank=True,
         help_text="Select services this counselor offers"
     )
-    
+
     is_active = models.BooleanField(default=True)
-    
+
     # NEW FIELD: Controls if counselor is accepting new bookings
     is_accepting_bookings = models.BooleanField(
         default=False,
@@ -65,6 +65,10 @@ class Counselor(models.Model):
         default=True,
         help_text="Uncheck to hide this person from the booking flow (they still appear on the counselors page)."
     )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -76,13 +80,25 @@ class Counselor(models.Model):
     @property
     def full_name(self):
         return self.user.get_full_name() or self.user.username
+<<<<<<< HEAD
+=======
+
+    @property
+    def email(self):
+        return self.user.email
+
+>>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
     @property
     def can_be_booked(self):
         """Check if counselor can accept bookings"""
         return self.is_active and self.is_accepting_bookings and self.show_on_booking_page
+<<<<<<< HEAD
     @property
     def email(self):
         return self.user.email
+=======
+
+>>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
@@ -116,8 +132,8 @@ class Availability(models.Model):
     ]
 
     counselor = models.ForeignKey(
-        Counselor, 
-        on_delete=models.CASCADE, 
+        Counselor,
+        on_delete=models.CASCADE,
         related_name='availabilities'
     )
     day_of_week = models.IntegerField(choices=DAYS_OF_WEEK)
@@ -150,21 +166,21 @@ class Appointment(models.Model):
 
     # Appointment details
     counselor = models.ForeignKey(
-        Counselor, 
-        on_delete=models.CASCADE, 
+        Counselor,
+        on_delete=models.CASCADE,
         related_name='appointments'
     )
     service = models.ForeignKey(
-        Service, 
-        on_delete=models.CASCADE, 
+        Service,
+        on_delete=models.CASCADE,
         related_name='appointments'
     )
     appointment_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
