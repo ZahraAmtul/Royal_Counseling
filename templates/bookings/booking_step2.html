@@ -1,262 +1,276 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Book Appointment - Step 2{% endblock %}
+{% block title %}Book an appointment | Pick a date and time{% endblock %}
+
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/booking.css' %}">{% endblock %}
 
 {% block content %}
-<section class="booking-hero">
-    <div class="booking-image"></div>
-    <div class="booking-content">
-        <h1 class="booking-title">Book Your Appointment</h1>
-            <p class="mb-4">
-                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
-                Approach to create <br> a enduring, sustainable and positive change in our client's life.
-            </p>
-    </div>
-</section>
-<div class="container py-5">
-    <!-- Step Indicator -->
-    <div class="step-indicator">
-        <div class="step completed">
-            <div class="step-number"><i class="bi bi-check"></i></div>
-            <span>Select</span>
-        </div>
-        <div class="step-line completed"></div>
-        <div class="step active">
-            <div class="step-number">2</div>
-            <span>Date & Time</span>
-        </div>
-        <div class="step-line"></div>
-        <div class="step">
-            <div class="step-number">3</div>
-            <span>Confirm</span>
-        </div>
-    </div>
+<div class="bk">
+  {% include "bookings/includes/booking_header.html" with current=2 %}
 
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card">
-                <div class="card-body p-4 p-md-5">
-                    <!-- Selection Summary -->
-                    <div class="alert alert-light border mb-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <strong><i class="bi bi-person me-2"></i>Counselor:</strong>
-                                 {{ counselor.full_name }}
-                            </div>
-                            <div class="col-md-6">
-                                <strong><i class="bi bi-list-check me-2"></i>Service:</strong>
-                                {{ service.name }} ({{ service.duration_minutes }} min)
-                            </div>
-                        </div>
-                    </div>
+  <form method="post" id="bk-step2" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="appointment_date" id="bk-date-input" value="">
+    <input type="hidden" name="start_time" id="bk-time-input" value="">
 
-                    <h4 class="mb-4"><i class="bi bi-calendar-event primary-text me-2"></i>Select Date & Time</h4>
-                    
-                    <div class="row">
-                        <!-- Calendar -->
-                        <div class="col-lg-7 mb-4">
-                            <div id="calendar"></div>
-                        </div>
-                        
-                        <!-- Time Slots -->
-                        <div class="col-lg-5">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h5 class="card-title mb-3">
-                                        <i class="bi bi-clock me-2"></i>Available Times
-                                    </h5>
-                                    <p class="" id="selected-date-display">Select a date from the calendar</p>
-                                    
-                                    <div id="time-slots-container">
-                                        <!-- Time slots will be loaded here -->
-                                    </div>
-                                    
-                                    <div id="no-slots-message" class="text-center py-4" style="display: none;">
-                                        <i class="bi bi-calendar-x " style="font-size: 2rem;"></i>
-                                        <p class=" mt-2">No available slots for this date</p>
-                                    </div>
-                                    
-                                    <div id="loading-slots" class="text-center py-4" style="display: none;">
-                                        <div class="spinner-border primary-text" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <form method="post" id="datetime-form" class="mt-4">
-                                {% csrf_token %}
-                                <input type="hidden" name="appointment_date" id="appointment-date" required>
-                                <input type="hidden" name="start_time" id="start-time" required>
-                                
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-lg" id="continue-btn" disabled>
-                                        Continue <i class="bi bi-arrow-right ms-2"></i>
-                                    </button>
-                                    <a href="{% url 'booking_start' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-left me-2"></i>Back
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+    <div class="container bk-body">
+      <div class="bk-summary-strip">
+        <span><i class="bi bi-person" aria-hidden="true"></i><strong>{{ counselor.full_name }}</strong></span>
+        <span><i class="bi bi-chat-heart" aria-hidden="true"></i>{{ service.name }}, {{ service.duration_minutes }} min</span>
+        <a href="{% url 'booking_start' %}">Change</a>
+      </div>
+
+      {% if available_dates %}
+      <section class="bk-section" aria-labelledby="bk-date-title">
+        <div class="bk-section-head">
+          <h2 class="bk-section-title" id="bk-date-title"><span class="bk-badge-num">1</span> Pick a day</h2>
+          <p class="bk-hint">Only days with openings are shown.</p>
+        </div>
+        {% now "Y-m-d" as today %}
+        <div class="bk-dates-wrap">
+          <button type="button" class="bk-scroll-btn prev" data-scroll="-1" aria-label="Earlier dates"><i class="bi bi-chevron-left"></i></button>
+          <div class="bk-dates" id="bk-dates">
+            {% for d in available_dates %}
+            {% with iso=d|date:"Y-m-d" %}
+            <button type="button" class="bk-date" data-date="{{ iso }}" data-label="{{ d|date:'l, j F' }}" aria-pressed="false">
+              <span class="bk-date-dow">{{ d|date:"D" }}</span>
+              <span class="bk-date-day">{{ d|date:"j" }}</span>
+              <span class="bk-date-mon">{{ d|date:"M" }}</span>
+              {% if iso == today %}<span class="bk-date-today">Today</span>{% endif %}
+            </button>
+            {% endwith %}
+            {% endfor %}
+          </div>
+          <button type="button" class="bk-scroll-btn next" data-scroll="1" aria-label="Later dates"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </section>
+
+      <section class="bk-section" aria-labelledby="bk-time-title">
+        <div class="bk-section-head">
+          <h2 class="bk-section-title" id="bk-time-title"><span class="bk-badge-num">2</span> Pick a time</h2>
+          <p class="bk-hint" id="bk-time-hint" aria-live="polite">Choose a day first.</p>
+        </div>
+        <div class="bk-panel">
+          <div id="bk-slots-area" aria-live="polite">
+            <div class="bk-empty">
+              <i class="bi bi-calendar3" aria-hidden="true"></i>
+              Choose a day above to see available times.
             </div>
+          </div>
+          <p class="bk-tz"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>All times are Pakistan time (PKT). Each session lasts {{ service.duration_minutes }} minutes.</p>
         </div>
+      </section>
+      {% else %}
+      <div class="bk-panel bk-empty">
+        <i class="bi bi-calendar-x" aria-hidden="true"></i>
+        <h3>{{ counselor.full_name }} has no openings in the next 30 days</h3>
+        <h6>Please choose another counselor, or contact us and we'll find a time for you.</h6>
+        <a href="{% url 'booking_start' %}" class="btn">Choose another counselor</a>
+        <a href="{% url 'contact' %}" class="btn btn-outline-secondary ms-2">Contact us</a>
+      </div>
+      {% endif %}
     </div>
+
+    <div class="bk-actionbar">
+      <div class="container bk-actionbar-inner">
+        <a href="{% url 'booking_start' %}" class="bk-back"><i class="bi bi-arrow-left" aria-hidden="true"></i> <span>Back</span></a>
+        <div class="bk-actionbar-text" aria-live="polite">
+          <span class="bk-actionbar-label">Your appointment</span>
+          <span class="bk-actionbar-value" id="bk-bar-value">Pick a day and time</span>
+        </div>
+        <button type="submit" class="btn btn-lg bk-continue" id="bk-continue" disabled>
+          Continue <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const counselorId = '{{ counselor.id }}';
-    const serviceId = '{{ service.id }}';
-    const availableDates = [
-        {% for date in available_dates %}
-        '{{ date|date:"Y-m-d" }}'{% if not forloop.last %},{% endif %}
-        {% endfor %}
+(function () {
+  var slotsUrl = '{% url "get_available_slots" %}';
+  var counselorId = '{{ counselor.id }}';
+  var serviceId = '{{ service.id }}';
+  var initialDate = '{{ selected_date|escapejs }}';
+  var initialTime = '{{ selected_time|escapejs }}';
+
+  var dateInput = document.getElementById('bk-date-input');
+  var timeInput = document.getElementById('bk-time-input');
+  var area = document.getElementById('bk-slots-area');
+  var timeHint = document.getElementById('bk-time-hint');
+  var barValue = document.getElementById('bk-bar-value');
+  var continueBtn = document.getElementById('bk-continue');
+  var strip = document.getElementById('bk-dates');
+  if (!strip) return;
+  var dateButtons = Array.prototype.slice.call(strip.querySelectorAll('.bk-date'));
+  var currentLabel = '';
+  var requestId = 0;
+
+  function fmt12(hhmm) {
+    var p = hhmm.split(':'), h = parseInt(p[0], 10), m = p[1];
+    var suffix = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + suffix;
+  }
+
+  function setBar() {
+    if (dateInput.value && timeInput.value) {
+      barValue.textContent = currentLabel + ', ' + fmt12(timeInput.value);
+      continueBtn.disabled = false;
+    } else if (dateInput.value) {
+      barValue.textContent = currentLabel + ', now pick a time';
+      continueBtn.disabled = true;
+    } else {
+      barValue.textContent = 'Pick a day and time';
+      continueBtn.disabled = true;
+    }
+  }
+
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function showSkeleton() {
+    var s = el('div', 'bk-skeleton');
+    for (var i = 0; i < 6; i++) s.appendChild(el('span'));
+    area.innerHTML = '';
+    area.appendChild(s);
+  }
+
+  function showEmpty(btn) {
+    area.innerHTML = '';
+    var box = el('div', 'bk-empty');
+    box.innerHTML = '<i class="bi bi-calendar-x" aria-hidden="true"></i><h3>No times left on this day</h3><p>It may have just been booked.</p>';
+    var idx = dateButtons.indexOf(btn);
+    if (idx > -1 && idx < dateButtons.length - 1) {
+      var next = dateButtons[idx + 1];
+      var b = el('button', 'btn', 'Try ' + next.dataset.label + ' <i class="bi bi-arrow-right ms-1"></i>');
+      b.type = 'button';
+      b.addEventListener('click', function () { selectDate(next, true); });
+      box.appendChild(b);
+    }
+    area.appendChild(box);
+  }
+
+  function showError(btn) {
+    area.innerHTML = '';
+    var box = el('div', 'bk-empty', '<i class="bi bi-wifi-off" aria-hidden="true"></i><h3>Couldn\'t load times</h3><p>Please check your connection.</p>');
+    var b = el('button', 'btn', 'Try again');
+    b.type = 'button';
+    b.addEventListener('click', function () { selectDate(btn, false); });
+    box.appendChild(b);
+    area.appendChild(box);
+  }
+
+  function renderSlots(slots) {
+    var groups = [
+      { title: 'Morning', icon: 'bi-sunrise', test: function (h) { return h < 12; }, items: [] },
+      { title: 'Afternoon', icon: 'bi-sun', test: function (h) { return h >= 12 && h < 17; }, items: [] },
+      { title: 'Evening', icon: 'bi-moon', test: function (h) { return h >= 17; }, items: [] }
     ];
-    
-    const appointmentDateInput = document.getElementById('appointment-date');
-    const startTimeInput = document.getElementById('start-time');
-    const continueBtn = document.getElementById('continue-btn');
-    const selectedDateDisplay = document.getElementById('selected-date-display');
-    const timeSlotsContainer = document.getElementById('time-slots-container');
-    const noSlotsMessage = document.getElementById('no-slots-message');
-    const loadingSlots = document.getElementById('loading-slots');
-    
-    let selectedSlot = null;
-    
-    // Initialize FullCalendar
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: ''
-        },
-        validRange: {
-            start: new Date()
-        },
-        dateClick: function(info) {
-            const clickedDate = info.dateStr;
-            
-            // Check if date is available
-            if (!availableDates.includes(clickedDate)) {
-                return;
-            }
-            
-            // Remove previous selection
-            document.querySelectorAll('.fc-day').forEach(day => {
-                day.classList.remove('fc-day-selected');
-            });
-            
-            // Add selection to clicked day
-            info.dayEl.classList.add('fc-day-selected');
-            
-            // Update hidden input and display
-            appointmentDateInput.value = clickedDate;
-            const dateObj = new Date(clickedDate + 'T00:00:00');
-            selectedDateDisplay.innerHTML = `<strong>${dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong>`;
-            
-            // Load available slots
-            loadTimeSlots(clickedDate);
-        },
-        dayCellDidMount: function(info) {
-            const dateStr = info.date.toISOString().split('T')[0];
-            if (!availableDates.includes(dateStr)) {
-                info.el.classList.add('fc-day-disabled');
-                info.el.style.backgroundColor = '#f8f9fa';
-                info.el.style.color = '#ccc';
-                info.el.style.cursor = 'not-allowed';
-            } else {
-                info.el.style.cursor = 'pointer';
-            }
-        }
+    slots.forEach(function (slot) {
+      var h = parseInt(slot.start.split(':')[0], 10);
+      for (var i = 0; i < groups.length; i++) if (groups[i].test(h)) { groups[i].items.push(slot); break; }
     });
-    calendar.render();
-    
-    function loadTimeSlots(date) {
-        // Show loading
-        timeSlotsContainer.innerHTML = '';
-        noSlotsMessage.style.display = 'none';
-        loadingSlots.style.display = 'block';
-        continueBtn.disabled = true;
-        startTimeInput.value = '';
-        selectedSlot = null;
-        
-        // Fetch available slots
-        fetch(`/api/slots/?counselor_id=${counselorId}&service_id=${serviceId}&date=${date}`)
-            .then(response => response.json())
-            .then(data => {
-                loadingSlots.style.display = 'none';
-                
-                if (data.slots && data.slots.length > 0) {
-                    renderTimeSlots(data.slots);
-                } else {
-                    noSlotsMessage.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading slots:', error);
-                loadingSlots.style.display = 'none';
-                noSlotsMessage.style.display = 'block';
-            });
-    }
-    
-    function renderTimeSlots(slots) {
-        timeSlotsContainer.innerHTML = '';
-        
-        slots.forEach(slot => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn time-slot-btn';
-            btn.textContent = slot.display;
-            btn.dataset.startTime = slot.start;
-            
-            btn.addEventListener('click', function() {
-                // Remove previous selection
-                document.querySelectorAll('.time-slot-btn').forEach(b => {
-                    b.classList.remove('selected', 'btn');
-                    b.classList.add('btn');
-                });
-                
-                // Select this slot
-                this.classList.remove('btn');
-                this.classList.add('selected', 'btn');
-                
-                startTimeInput.value = this.dataset.startTime;
-                continueBtn.disabled = false;
-            });
-            
-            timeSlotsContainer.appendChild(btn);
-        });
-    }
-});
+
+    area.innerHTML = '';
+    groups.forEach(function (g) {
+      if (!g.items.length) return;
+      var wrap = el('div', 'bk-slot-group');
+      wrap.appendChild(el('h3', '', '<i class="bi ' + g.icon + '" aria-hidden="true"></i>' + g.title));
+      var grid = el('div', 'bk-slots');
+      g.items.forEach(function (slot) {
+        var b = el('button', 'bk-slot', fmt12(slot.start));
+        b.type = 'button';
+        b.setAttribute('aria-pressed', 'false');
+        b.setAttribute('aria-label', fmt12(slot.start) + ' to ' + fmt12(slot.end));
+        b.dataset.start = slot.start;
+        b.addEventListener('click', function () { selectTime(b); });
+        grid.appendChild(b);
+      });
+      wrap.appendChild(grid);
+      area.appendChild(wrap);
+    });
+    timeHint.textContent = slots.length + ' time' + (slots.length === 1 ? '' : 's') + ' available on ' + currentLabel + '.';
+  }
+
+  function selectTime(btn) {
+    area.querySelectorAll('.bk-slot').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    btn.setAttribute('aria-pressed', 'true');
+    timeInput.value = btn.dataset.start;
+    setBar();
+  }
+
+  function selectDate(btn, scroll) {
+    dateButtons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    btn.setAttribute('aria-pressed', 'true');
+    if (scroll) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+    dateInput.value = btn.dataset.date;
+    timeInput.value = '';
+    currentLabel = btn.dataset.label;
+    timeHint.textContent = 'Loading times for ' + currentLabel + '…';
+    setBar();
+    showSkeleton();
+
+    var thisRequest = ++requestId;
+    var url = slotsUrl + '?counselor_id=' + encodeURIComponent(counselorId) +
+              '&service_id=' + encodeURIComponent(serviceId) + '&date=' + encodeURIComponent(btn.dataset.date);
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (thisRequest !== requestId) return; // a newer date was clicked
+        if (data.slots && data.slots.length) {
+          renderSlots(data.slots);
+          if (initialTime && btn.dataset.date === initialDate) {
+            var match = area.querySelector('.bk-slot[data-start="' + initialTime + '"]');
+            if (match) selectTime(match);
+            initialTime = '';
+          }
+        } else {
+          timeHint.textContent = 'No times available on ' + currentLabel + '.';
+          showEmpty(btn);
+        }
+      })
+      .catch(function () {
+        if (thisRequest !== requestId) return;
+        timeHint.textContent = '';
+        showError(btn);
+      });
+  }
+
+  dateButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () { selectDate(btn, true); });
+  });
+
+  document.querySelectorAll('.bk-scroll-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      strip.scrollBy({ left: parseInt(b.dataset.scroll, 10) * strip.clientWidth * 0.8, behavior: 'smooth' });
+    });
+  });
+
+  document.getElementById('bk-step2').addEventListener('submit', function (e) {
+    if (!dateInput.value || !timeInput.value) { e.preventDefault(); return; }
+    continueBtn.disabled = true;
+    continueBtn.innerHTML = 'Loading…';
+  });
+
+  // Back/forward cache: restore the button
+  window.addEventListener('pageshow', function () {
+    continueBtn.innerHTML = 'Continue <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>';
+    setBar();
+  });
+
+  // Start on the previously chosen day, or the first available one
+  var start = dateButtons.filter(function (b) { return b.dataset.date === initialDate; })[0] || dateButtons[0];
+  if (start) selectDate(start, false);
+})();
 </script>
-
-<style>
-.fc-day-selected {
-    background-color: #e8f0fe !important;
-}
-
-.fc-day-disabled {
-    pointer-events: none;
-}
-
-.fc-daygrid-day:not(.fc-day-disabled):hover {
-    background-color: #f0f0f0;
-}
-
-.time-slot-btn {
-    margin: 4px;
-}
-
-.time-slot-btn.selected {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-}
-</style>
 {% endblock %}

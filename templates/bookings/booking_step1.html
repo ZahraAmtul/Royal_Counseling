@@ -1,207 +1,208 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static %}
 
-{% block title %}Book Appointment - Step 1{% endblock %}
+{% block title %}Book an appointment | Choose a counselor{% endblock %}
+
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/booking.css' %}">{% endblock %}
 
 {% block content %}
-<section class="booking-hero">
-    <div class="booking-image"></div>
-    <div class="booking-content">
-        <h1 class="booking-title">Book Your Appointment</h1>
-            <p class="mb-4">
-                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
-                Approach to create <br> a enduring, sustainable and positive change in our client's life.
-            </p>
-    </div>
-</section>
-<div class="container py-5">
-    <!-- Step Indicator -->
-    <div class="step-indicator">
-        <div class="step active">
-            <div class="step-number">1</div>
-            <span>Select</span>
-        </div>
-        <div class="step-line"></div>
-        <div class="step">
-            <div class="step-number">2</div>
-            <span>Date & Time</span>
-        </div>
-        <div class="step-line"></div>
-        <div class="step">
-            <div class="step-number">3</div>
-            <span>Confirm</span>
-        </div>
-    </div>
+<div class="bk">
+  {% include "bookings/includes/booking_header.html" with current=1 %}
 
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card">
-                <div class="card-body p-4 p-md-5">
-                    <h2 class="text-center mb-4">Book Your Appointment</h2>
-                    
-                    <form method="post" id="booking-form">
-                        {% csrf_token %}
-                        
-                        <!-- Select Counselor -->
-                        <h4 class="mb-3"><i class="bi bi-person-check primary-text me-2"></i>Choose a Counselor</h4>
-                        <div class="row g-3 mb-5" id="counselor-selection">
-                            {% for counselor in counselors %}
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card counselor-card h-100 p-3 {% if not counselor.is_accepting_bookings %}disabled-card{% endif %}" 
-                                     data-counselor-id="{{ counselor.id }}"
-                                     {% if not counselor.is_accepting_bookings %}data-disabled="true"{% endif %}>
-                                    
-                                    {% if not counselor.is_accepting_bookings %}
-                                    <div class="unavailable-badge">
-                                        <!-- <span class="badge bg-secondary">Not Available</span> -->
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <div class="card-body text-center">
-                                        {% if counselor.photo %}
-                                        <img src="{{ counselor.photo.url }}" alt="{{ counselor.full_name }}" 
-                                             class="counselor-photo mb-2 {% if not counselor.is_accepting_bookings %}grayscale{% endif %}" 
-                                             style="width: 70px; height: 70px;">
-                                        {% else %}
-                                        <div class="counselor-photo-placeholder mx-auto mb-2 {% if not counselor.is_accepting_bookings %}disabled-placeholder{% endif %}" 
-                                             style="width: 70px; height: 70px; font-size: 1.5rem;">
-                                            {{ counselor.user.first_name.0 }}{{ counselor.user.last_name.0 }}
-                                        </div>
-                                        {% endif %}
-                                        <h6 class="card-title mb-1">{{ counselor.full_name }}</h6>
-                                        <small class="primary-text">{{ counselor.specialization }}</small>
-                                        
-                                        {% if not counselor.is_accepting_bookings %}
-                                        <p class="text-muted small mt-2 mb-0">
-                                            <!-- <i class="bi bi-clock"></i> Currently not accepting bookings -->
-                                        </p>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% empty %}
-                            <div class="col-12">
-                                <div class="alert alert-warning">No counselors available at this time.</div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <input type="hidden" name="counselor" id="selected-counselor" required>
-                        
-                        <!-- Select Service -->
-                        <h4 class="mb-3"><i class="bi bi-list-check primary-text me-2"></i>Choose a Service</h4>
-                        <div class="row g-3 mb-4" id="service-selection">
-                            {% for service in services %}
-                            <div class="col-md-6">
-                                <div class="card service-card h-100 p-3" data-service-id="{{ service.id }}">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="card-title text-white mb-1">{{ service.name }}</h6>
-                                                <small class="">
-                                                    <i class="bi bi-clock me-1"></i>{{ service.duration_minutes }} minutes
-                                                </small>
-                                                {% if service.description %}
-                                                <p class="card-text mt-2 mb-0 small">{{ service.description }}</p>
-                                                {% endif %}
-                                            </div>
-                                            {% if service.price > 0 %}
-                                            <span class="badge text-black fs-6">${{ service.price }}</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% empty %}
-                            <div class="col-12">
-                                <div class="alert alert-warning">No services available at this time.</div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <input type="hidden" name="service" id="selected-service" required>
-                        
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-lg px-5" id="continue-btn" disabled>
-                                Continue <i class="bi bi-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+  <form method="post" id="bk-step1" novalidate>
+    {% csrf_token %}
+    <div class="container bk-body">
+
+      <!-- 1. Counselor -->
+      <section class="bk-section" aria-labelledby="bk-counselor-title">
+        <div class="bk-section-head">
+          <h2 class="bk-section-title" id="bk-counselor-title"><span class="bk-badge-num">1</span> Who would you like to see?</h2>
+          <p class="bk-hint">Not sure? Pick anyone accepting bookings. All our counselors are fully qualified.</p>
+        </div>
+
+        <div class="row g-3" role="radiogroup" aria-labelledby="bk-counselor-title">
+          {% for counselor in counselors %}
+          <div class="col-sm-6 col-lg-4">
+            <label class="bk-option{% if not counselor.is_accepting_bookings %} is-disabled{% endif %}"
+                   data-services="{% for s in counselor.services.all %}{{ s.id }} {% endfor %}"
+                   data-name="{{ counselor.full_name }}">
+              <input type="radio" name="counselor" value="{{ counselor.id }}"
+                     {% if not counselor.is_accepting_bookings %}disabled{% endif %}
+                     {% if counselor.is_accepting_bookings and counselor.id|stringformat:"s" == selected_counselor %}checked{% endif %}>
+              <span class="bk-option-card">
+                {% if counselor.photo %}
+                  <img src="{{ counselor.photo.url }}" alt="" class="bk-avatar">
+                {% else %}
+                  <span class="bk-avatar" aria-hidden="true">{{ counselor.user.first_name.0 }}{{ counselor.user.last_name.0 }}</span>
+                {% endif %}
+                <span class="flex-grow-1">
+                  <span class="bk-option-name d-block">{{ counselor.full_name }}</span>
+                  <span class="bk-option-meta d-block">{{ counselor.specialization }}</span>
+                  {% if counselor.is_accepting_bookings %}
+                    <span class="bk-pill is-open">Accepting bookings</span>
+                  {% else %}
+                    <span class="bk-pill">Not taking new bookings</span>
+                  {% endif %}
+                </span>
+                <span class="bk-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              </span>
+            </label>
+          </div>
+          {% empty %}
+          <div class="col-12">
+            <div class="bk-locked">
+              No counselors are available right now. Please <a href="{% url 'contact' %}">contact us</a> and we'll help you book.
             </div>
+          </div>
+          {% endfor %}
         </div>
+      </section>
+
+      <!-- 2. Session type -->
+      <section class="bk-section" aria-labelledby="bk-service-title">
+        <div class="bk-section-head">
+          <h2 class="bk-section-title" id="bk-service-title"><span class="bk-badge-num">2</span> Choose a session</h2>
+          <p class="bk-hint" id="bk-service-hint">Showing all sessions.</p>
+        </div>
+
+        <div class="bk-locked" id="bk-service-locked" hidden>
+          <i class="bi bi-arrow-up-circle me-1" aria-hidden="true"></i> Choose a counselor above to see the sessions they offer.
+        </div>
+
+        <div class="row g-3" role="radiogroup" aria-labelledby="bk-service-title" id="bk-service-grid">
+          {% for service in services %}
+          <div class="col-md-6 bk-service-col" data-service-id="{{ service.id }}">
+            <label class="bk-option" data-name="{{ service.name }}" data-duration="{{ service.duration_minutes }}">
+              <input type="radio" name="service" value="{{ service.id }}"
+                     {% if service.id|stringformat:"s" == selected_service %}checked{% endif %}>
+              <span class="bk-option-card">
+                <span class="flex-grow-1">
+                  <span class="bk-service-top">
+                    <span class="bk-option-name">{{ service.name }}</span>
+                    {% if service.price > 0 %}<span class="bk-price">${{ service.price }}</span>{% endif %}
+                  </span>
+                  <span class="bk-option-meta d-block"><i class="bi bi-clock me-1" aria-hidden="true"></i>{{ service.duration_minutes }} minutes</span>
+                  {% if service.description %}<span class="bk-service-desc d-block">{{ service.description|truncatewords:28 }}</span>{% endif %}
+                </span>
+                <span class="bk-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              </span>
+            </label>
+          </div>
+          {% empty %}
+          <div class="col-12"><div class="bk-locked">No sessions are available right now.</div></div>
+          {% endfor %}
+        </div>
+      </section>
     </div>
+
+    <!-- Sticky action bar -->
+    <div class="bk-actionbar">
+      <div class="container bk-actionbar-inner">
+        <div class="bk-actionbar-text" aria-live="polite">
+          <span class="bk-actionbar-label" id="bk-bar-label">Next: pick a date and time</span>
+          <span class="bk-actionbar-value" id="bk-bar-value">Choose a counselor and a session</span>
+        </div>
+        <button type="submit" class="btn btn-lg bk-continue" id="bk-continue">
+          Continue <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
-
-<style>
-/* Disabled counselor card styles */
-.counselor-card.disabled-card {
-    opacity: 0.6;
-    cursor: not-allowed !important;
-    position: relative;
-    
-}
-
-.counselor-card.disabled-card:hover {
-    transform: none !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
-}
-
-.unavailable-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-}
-
-.grayscale {
-    filter: grayscale(100%);
-}
-
-.disabled-placeholder {
-    background: #adb5bd !important;
-}
-
-</style>
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const counselorCards = document.querySelectorAll('.counselor-card');
-    const serviceCards = document.querySelectorAll('.service-card');
-    const counselorInput = document.getElementById('selected-counselor');
-    const serviceInput = document.getElementById('selected-service');
-    const continueBtn = document.getElementById('continue-btn');
-    
-    function updateContinueButton() {
-        continueBtn.disabled = !(counselorInput.value && serviceInput.value);
+(function () {
+  var form = document.getElementById('bk-step1');
+  var counselorInputs = form.querySelectorAll('input[name="counselor"]');
+  var serviceInputs = form.querySelectorAll('input[name="service"]');
+  var serviceCols = form.querySelectorAll('.bk-service-col');
+  var locked = document.getElementById('bk-service-locked');
+  var grid = document.getElementById('bk-service-grid');
+  var hint = document.getElementById('bk-service-hint');
+  var barValue = document.getElementById('bk-bar-value');
+  var continueBtn = document.getElementById('bk-continue');
+
+  function checked(inputs) {
+    for (var i = 0; i < inputs.length; i++) if (inputs[i].checked) return inputs[i];
+    return null;
+  }
+
+  function syncSelectedClass(inputs) {
+    inputs.forEach(function (input) {
+      input.closest('.bk-option').classList.toggle('is-selected', input.checked);
+    });
+  }
+
+  function filterServices() {
+    var counselor = checked(counselorInputs);
+    if (!counselor) {
+      locked.hidden = false;
+      grid.hidden = true;
+      hint.textContent = 'Step 1 first.';
+      return;
     }
-    
-    // Counselor selection (only enabled ones)
-    counselorCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Check if disabled
-            if (this.dataset.disabled === 'true') {
-                // Show tooltip or message
-                alert('This counselor is currently not accepting bookings. Please select another counselor.');
-                return;
-            }
-            
-            counselorCards.forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            counselorInput.value = this.dataset.counselorId;
-            updateContinueButton();
-        });
+    locked.hidden = true;
+    grid.hidden = false;
+    var label = counselor.closest('.bk-option');
+    var offered = (label.dataset.services || '').trim().split(/\s+/).filter(Boolean);
+    var shown = 0;
+    serviceCols.forEach(function (col) {
+      var visible = offered.length === 0 || offered.indexOf(col.dataset.serviceId) !== -1;
+      col.hidden = !visible;
+      if (visible) shown++;
+      var input = col.querySelector('input');
+      if (!visible && input.checked) input.checked = false;
     });
-    
-    // Service selection
-    serviceCards.forEach(card => {
-        card.addEventListener('click', function() {
-            serviceCards.forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            serviceInput.value = this.dataset.serviceId;
-            updateContinueButton();
-        });
+    hint.textContent = shown + ' session' + (shown === 1 ? '' : 's') + ' offered by ' + label.dataset.name + '.';
+  }
+
+  function update() {
+    syncSelectedClass(counselorInputs);
+    syncSelectedClass(serviceInputs);
+    var c = checked(counselorInputs);
+    var s = checked(serviceInputs);
+    if (c && s) {
+      var sl = s.closest('.bk-option');
+      barValue.textContent = c.closest('.bk-option').dataset.name + ', ' + sl.dataset.name + ' (' + sl.dataset.duration + ' min)';
+    } else if (c) {
+      barValue.textContent = c.closest('.bk-option').dataset.name + ', now choose a session';
+    } else {
+      barValue.textContent = 'Choose a counselor and a session';
+    }
+    continueBtn.disabled = !(c && s);
+  }
+
+  counselorInputs.forEach(function (input) {
+    input.addEventListener('change', function () {
+      filterServices();
+      update();
+      // Guide the visitor to the next choice
+      document.getElementById('bk-service-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
-});
+  });
+  serviceInputs.forEach(function (input) { input.addEventListener('change', update); });
+
+  form.addEventListener('submit', function (e) {
+    if (continueBtn.disabled) { e.preventDefault(); return; }
+    continueBtn.disabled = true;
+    continueBtn.innerHTML = 'Loading…';
+  });
+
+  // Unavailable counselors explain themselves instead of silently doing nothing
+  form.querySelectorAll('.bk-option.is-disabled').forEach(function (label) {
+    label.addEventListener('click', function () {
+      barValue.textContent = label.dataset.name + ' is not taking new bookings right now. Please choose someone else.';
+    });
+  });
+
+  // Support ?counselor= links from other pages
+  filterServices();
+  update();
+  // Back/forward cache: re-enable the button
+  window.addEventListener('pageshow', function () { update(); continueBtn.innerHTML = 'Continue <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>'; });
+})();
 </script>
 {% endblock %}

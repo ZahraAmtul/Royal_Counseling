@@ -28,7 +28,7 @@
                         {% if service.price > 0 %}
                         <h4>${{ service.price }}</h4>
                         {% endif %}
-                        <a href="{% url 'booking_start' %}" class="btn btn-lg">Book Session</a>
+                        <a href="{% url 'booking_start' %}?service={{ service.id }}" class="btn btn-lg">Book Session</a>
                     </div>
                 </div>
             </div>

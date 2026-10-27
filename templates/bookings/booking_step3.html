@@ -1,100 +1,120 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static crispy_forms_tags %}
 
-{% block title %}Book Appointment - Confirm{% endblock %}
+{% block title %}Book an appointment | Your details{% endblock %}
+
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/booking.css' %}">{% endblock %}
 
 {% block content %}
-<section class="booking-hero">
-    <div class="booking-image"></div>
-    <div class="booking-content">
-        <h1 class="booking-title">Book Your Appointment</h1>
-            <p class="mb-4">
-                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
-                Approach to create <br> a enduring, sustainable and positive change in our client's life.
-            </p>
-    </div>
-</section>
-<div class="container py-5">
-    <!-- Step Indicator -->
-    <div class="step-indicator">
-        <div class="step completed">
-            <div class="step-number"><i class="bi bi-check"></i></div>
-            <span>Select</span>
-        </div>
-        <div class="step-line completed"></div>
-        <div class="step completed">
-            <div class="step-number"><i class="bi bi-check"></i></div>
-            <span>Date & Time</span>
-        </div>
-        <div class="step-line completed"></div>
-        <div class="step active">
-            <div class="step-number">3</div>
-            <span>Confirm</span>
-        </div>
-    </div>
+<div class="bk">
+  {% include "bookings/includes/booking_header.html" with current=3 %}
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-body p-4 p-md-5">
-                    <h2 class="text-center mb-4">Confirm Your Booking</h2>
-                    
-                    <!-- Appointment Summary -->
-                    <div class="card bg-light mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3">
-                                <i class="bi bi-calendar-check primary-text me-2"></i>Appointment Details
-                            </h5>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <strong class="">Counselor</strong>
-                                    <h6 class="mb-0">{{ counselor.full_name }}</h6>
-                                    <small class="">{{ counselor.specialization }}</small>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class="">Service</strong>
-                                    <h6 class="mb-0">{{ service.name }}</h6>
-                                    <small class="">{{ service.duration_minutes }} minutes</small>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class="">Date</strong>
-                                    <h6 class="mb-0">{{ appointment_date|date:"l, F j, Y" }}</h6>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class="">Time</strong>
-                                    <h6 class="mb-0">{{ start_time|time:"g:i A" }} - {{ end_time|time:"g:i A" }}</h6>
-                                </div>
-                                {% if service.price > 0 %}
-                                <div class="col-12">
-                                    <strong class="">Price</strong>
-                                    <h5 class="mb-0 h5 primary-text">${{ service.price }}</h5>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Client Details Form -->
-                    <h5 class="mb-3">
-                        <i class="bi bi-person-lines-fill primary-text me-2"></i>Your Information
-                    </h5>
-                    
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        
-                        <div class="mt-4 d-flex gap-2 flex-wrap justify-content-center">
-                            <button type="submit" class="btn btn-success btn-lg px-5">
-                                <i class="bi bi-check-circle me-2"></i>Confirm Booking
-                            </button>
-                            <a href="{% url 'booking_datetime' %}" class="btn btn-outline-secondary btn-lg">
-                                <i class="bi bi-arrow-left me-2"></i>Back
-                            </a>
-                        </div>
-                    </form>
-                </div>
+  <div class="container bk-body pb-5">
+    <div class="row g-4 flex-lg-row-reverse">
+
+      <!-- Review -->
+      <div class="col-lg-5">
+        <aside class="bk-panel bk-review" aria-labelledby="bk-review-title">
+          <h2 id="bk-review-title">Your appointment</h2>
+
+          <div class="bk-review-row">
+            <i class="bi bi-person" aria-hidden="true"></i>
+            <div>
+              <span class="bk-review-label">Counselor</span>
+              <span class="bk-review-value">{{ counselor.full_name }}</span>
+              <span class="bk-muted small">{{ counselor.specialization }}</span>
             </div>
+            <a href="{% url 'booking_start' %}">Change</a>
+          </div>
+
+          <div class="bk-review-row">
+            <i class="bi bi-chat-heart" aria-hidden="true"></i>
+            <div>
+              <span class="bk-review-label">Session</span>
+              <span class="bk-review-value">{{ service.name }}</span>
+              <span class="bk-muted small">{{ service.duration_minutes }} minutes</span>
+            </div>
+            <a href="{% url 'booking_start' %}">Change</a>
+          </div>
+
+          <div class="bk-review-row">
+            <i class="bi bi-calendar-event" aria-hidden="true"></i>
+            <div>
+              <span class="bk-review-label">Date and time (PKT)</span>
+              <span class="bk-review-value">{{ appointment_date|date:"l, j F Y" }}</span>
+              <span class="bk-muted small">{{ start_time|time:"g:i A" }} to {{ end_time|time:"g:i A" }}</span>
+            </div>
+            <a href="{% url 'booking_datetime' %}">Change</a>
+          </div>
+
+          {% if service.price > 0 %}
+          <div class="bk-total"><span>Fee</span><span>${{ service.price }}</span></div>
+          {% endif %}
+        </aside>
+      </div>
+
+      <!-- Details form -->
+      <div class="col-lg-7">
+        <div class="bk-panel">
+          <h2 class="bk-section-title mb-1">Your details</h2>
+          <p class="bk-muted mb-4">We'll use these to confirm your appointment and contact you if anything changes.</p>
+
+          <form method="post" class="bk-form" id="bk-step3" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger" role="alert">{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div>
+            {% endif %}
+
+            <div class="row">
+              <div class="col-md-6">{{ form.client_name|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.client_email|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.client_phone|as_crispy_field }}</div>
+            </div>
+            {{ form.notes|as_crispy_field }}
+
+            <button type="submit" class="btn btn-lg bk-submit mt-2" id="bk-submit">
+              <i class="bi bi-check-circle me-2" aria-hidden="true"></i>Confirm booking
+            </button>
+            <p class="bk-privacy">
+              <i class="bi bi-shield-lock" aria-hidden="true"></i>
+              <span>Your information is confidential and only shared with your counselor.</span>
+            </p>
+          </form>
         </div>
+        <a href="{% url 'booking_datetime' %}" class="bk-back d-inline-block mt-3"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to date and time</a>
+      </div>
     </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var form = document.getElementById('bk-step3');
+  var btn = document.getElementById('bk-submit');
+  var name = form.querySelector('[name="client_name"]');
+  var email = form.querySelector('[name="client_email"]');
+  var phone = form.querySelector('[name="client_phone"]');
+  if (name) name.setAttribute('autocomplete', 'name');
+  if (email) { email.setAttribute('autocomplete', 'email'); email.setAttribute('inputmode', 'email'); }
+  if (phone) { phone.setAttribute('autocomplete', 'tel'); phone.setAttribute('type', 'tel'); phone.setAttribute('placeholder', '+92 300 1234567'); }
+  var notesLabel = form.querySelector('label[for="id_notes"]');
+  if (notesLabel && notesLabel.textContent.indexOf('optional') === -1) notesLabel.insertAdjacentHTML('beforeend', ' <span class="bk-muted fw-normal">(optional)</span>');
+
+  // Focus the first field with an error
+  var invalid = form.querySelector('.is-invalid');
+  if (invalid) invalid.focus();
+
+  form.addEventListener('submit', function () {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Booking…';
+  });
+  window.addEventListener('pageshow', function () {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check-circle me-2" aria-hidden="true"></i>Confirm booking';
+  });
+})();
+</script>
 {% endblock %}

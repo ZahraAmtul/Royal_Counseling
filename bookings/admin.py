@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from datetime import datetime, time, timedelta
 
 from django.db import models
-from django.db.models import Q
 from django.utils.safestring import mark_safe
 from .models import Counselor, Service, Availability, Appointment, ContactMessage
 
@@ -39,7 +38,8 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
             if db_field.name == 'counselor':
                 kwargs['queryset'] = Counselor.objects.filter(id=request.user.counselor_profile.id)
             elif db_field.name == 'service':
-                kwargs['queryset'] = request.user.counselor_profile.services.filter(is_active=True)
+                offered = request.user.counselor_profile.services.filter(is_active=True)
+                kwargs['queryset'] = offered if offered.exists() else Service.objects.filter(is_active=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def has_module_permission(self, request):
@@ -329,11 +329,17 @@ class AvailabilityAdmin(FriendlyDateTimeMixin, CounselorFilteredAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(FriendlyDateTimeMixin, CounselorFilteredAdmin):
-    list_display = ['client_name', 'counselor', 'service', 'appointment_date', 'start_time', 'status', 'created_at']
+    list_display = ['client_name', 'counselor', 'service', 'appointment_date', 'time_range', 'status', 'created_at']
     list_filter = ['status', 'appointment_date']
+    list_select_related = ['counselor__user', 'service']
     search_fields = ['client_name', 'client_email', 'client_phone']
     date_hierarchy = 'appointment_date'
-    readonly_fields = ['created_at', 'updated_at']
+    # End time is calculated from the service length when saved
+    readonly_fields = ['end_time', 'created_at', 'updated_at']
+
+    @admin.display(description='Time', ordering='start_time')
+    def time_range(self, obj):
+        return f"{time_label(obj.start_time)} - {time_label(obj.end_time)}"
 
     fieldsets = (
         ('Client Information', {
@@ -353,36 +359,40 @@ class AppointmentAdmin(FriendlyDateTimeMixin, CounselorFilteredAdmin):
             return ['status', 'counselor', 'service', 'appointment_date']
         return ['status', 'service', 'appointment_date']
 
+# -----------------------------------------------------------------------------
+# Contact Messages (registered once, here only)
+# -----------------------------------------------------------------------------
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "email",
-        "subject",
-        "created_at",
-        "is_responded",
-    )
-
-    list_filter = ("is_responded", "created_at")
-    search_fields = ("name", "email", "subject", "message")
-    list_editable = ("is_responded",)
-    readonly_fields = ("created_at",)
-    ordering = ("-created_at",)
+    list_display = ['name', 'email', 'subject', 'created_at', 'is_responded']
+    list_filter = ['is_responded', 'created_at']
+    search_fields = ['name', 'email', 'subject', 'message']
+    list_editable = ['is_responded']
+    readonly_fields = ['name', 'email', 'subject', 'message', 'created_at']
+    ordering = ['-created_at']
 
     fieldsets = (
-        ("Contact Details", {
-            "fields": ("name", "email", "subject", "message", "created_at")
-        }),
-        ("Response Tracking", {
-            "fields": ("is_responded", "response")
-        }),
+        ('Message', {'fields': ('name', 'email', 'subject', 'message', 'created_at')}),
+        ('Response tracking', {'fields': ('is_responded', 'response')}),
     )
 
+    # Superadmin only: counselors don't see the site inbox
+    def has_module_permission(self, request):
+        return request.user.is_superuser
 
-# -----------------------------------------------------------------------------
-# Admin Site Customization
-# -----------------------------------------------------------------------------
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False  # messages come from the website
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
 admin.site.site_header = "STU Counseling Admin"
 admin.site.site_title = "STU Admin"

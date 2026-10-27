@@ -2,7 +2,7 @@
 {% load static %}
 {% load blog_tags %}
 {% block extra_css %}{{ block.super }}{% include 'blog/includes/head_assets.html' %}{% endblock %}
-{% block title %}Royal Counseling - Professional Mental Health Services{% endblock %}
+{% block title %}STU CONSULTANT - Professional Mental Health Services{% endblock %}
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
@@ -20,7 +20,7 @@
   <div class="why-container">
 
     <div class="why-text">
-      <h2 data-aos="fade-right" data-aos-duration="1000">Why Choose Royal Counseling?</h2>
+      <h2 data-aos="fade-right" data-aos-duration="1000">Why Choose STU CONSULTANT?</h2>
       <h5 class="primary-text" data-aos="fade-right" data-aos-duration="2000">
         World is a global place and so it's people. In this age of information overload, rapidly changing technology, financial constraints and social media influence people are indeed under great pressure to cope with the challenges of Life. This has load to various mental health issues among people across all walks of life. Our aim is to extend 
         hands for who are struggling and offer a practical solution to deal with various mental health challenges that are increasing everyday.
@@ -36,8 +36,34 @@
       <a data-aos="fade-right" data-aos-duration="3000" href="{% url 'booking_start' %}" class="btn btn-lg">Book an Appointment</a>
     </div>
 
-    <div class="why-image" data-aos="fade-left"
-     data-aos-duration="3000"></div>
+    <!-- <div class="why-image" data-aos="fade-left"
+     data-aos-duration="3000"></div> -->
+
+<div class="why-visual" data-aos="fade-left">
+    <div class="orbit orbit-one"></div>
+    <div class="orbit orbit-two"></div>
+
+    <div class="consultant-center">
+        <i class="bi bi-person-heart"></i>
+        <span>Care that understands you</span>
+    </div>
+
+    <div class="floating-icon icon-brain">
+        <i class="bi bi-emoji-smile"></i>
+    </div>
+
+    <div class="floating-icon icon-heart">
+        <i class="bi bi-heart-pulse"></i>
+    </div>
+
+    <div class="floating-icon icon-chat">
+        <i class="bi bi-chat-heart"></i>
+    </div>
+
+    <div class="floating-icon icon-flower">
+        <i class="bi bi-flower1"></i>
+    </div>
+</div>
 
   </div>
 </section>
@@ -80,9 +106,9 @@
         {% endif %}
     </div>
 </section>
-
+{% latest_blog_posts 3 %}
 <!-- How It Works Section -->
-<section class="works-section">
+<section class="works-section bg-light">
     <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row g-4">

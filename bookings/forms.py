@@ -1,67 +1,25 @@
+import re
+
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Div, HTML, Field
-from .models import Appointment, Counselor, Service
 
+from .models import Appointment, ContactMessage
 
-class CounselorSelectForm(forms.Form):
-    """Form to select a counselor"""
-    counselor = forms.ModelChoiceField(
-        queryset=Counselor.objects.filter(is_active=True),
-        widget=forms.RadioSelect,
-        empty_label=None
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            'counselor',
-            Submit('submit', 'Continue', css_class='btn btn-primary btn-lg mt-3')
-        )
-
-
-class ServiceSelectForm(forms.Form):
-    """Form to select a service type"""
-    service = forms.ModelChoiceField(
-        queryset=Service.objects.filter(is_active=True),
-        widget=forms.RadioSelect,
-        empty_label=None
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            'service',
-            Submit('submit', 'Continue', css_class='btn btn-primary btn-lg mt-3')
-        )
-
-
-class DateTimeSelectForm(forms.Form):
-    """Form to select date and time slot"""
-    appointment_date = forms.DateField(
-        widget=forms.HiddenInput()
-    )
-    start_time = forms.TimeField(
-        widget=forms.HiddenInput()
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.form_id = 'datetime-form'
+PHONE_RE = re.compile(r'^\+?[\d\s\-()]{7,20}$')
 
 
 class AppointmentBookingForm(forms.ModelForm):
-    """Form for client details"""
-    
+    """Client details on the last booking step (rendered field by field in booking_step3.html)."""
+
     class Meta:
         model = Appointment
         fields = ['client_name', 'client_email', 'client_phone', 'notes']
+        labels = {
+            'client_name': 'Full name',
+            'client_email': 'Email',
+            'client_phone': 'Phone / WhatsApp',
+            'notes': 'Anything you would like your counselor to know?',
+        }
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
@@ -69,27 +27,34 @@ class AppointmentBookingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            Row(
-                Column('client_name', css_class='form-group col-md-6 mb-3'),
-                Column('client_email', css_class='form-group col-md-6 mb-3'),
-                css_class='row'
-            ),
-            Row(
-                Column('client_phone', css_class='form-group col-md-6 mb-3'),
-                css_class='row'
-            ),
-            'notes',
-            Div(
-                Submit('submit', 'Confirm Booking', css_class='btn btn-success btn-lg'),
-                HTML('<a href="{% url \'booking_start\' %}" class="btn btn-outline-secondary btn-lg ms-2">Start Over</a>'),
-                css_class='mt-4'
-            )
-        )
-        
-        # Add placeholders
-        self.fields['client_name'].widget.attrs['placeholder'] = 'Your full name'
-        self.fields['client_email'].widget.attrs['placeholder'] = 'your.email@example.com'
-        self.fields['client_phone'].widget.attrs['placeholder'] = '+1 234 567 8900'
-        self.fields['notes'].widget.attrs['placeholder'] = 'Any specific concerns or topics you\'d like to discuss...'
+        self.helper.form_tag = False
+        self.fields['client_name'].widget.attrs.update(placeholder='Your full name', autocomplete='name')
+        self.fields['client_email'].widget.attrs.update(placeholder='you@example.com', autocomplete='email')
+        self.fields['client_phone'].widget.attrs.update(placeholder='+92 300 1234567', autocomplete='tel', type='tel')
+        self.fields['notes'].widget.attrs.update(placeholder="Optional. Share only what you're comfortable with.")
+
+    def clean_client_name(self):
+        name = ' '.join(self.cleaned_data['client_name'].split())
+        if len(name) < 2:
+            raise forms.ValidationError('Please enter your full name.')
+        return name
+
+    def clean_client_phone(self):
+        phone = self.cleaned_data['client_phone'].strip()
+        if not PHONE_RE.match(phone) or len(re.sub(r'\D', '', phone)) < 7:
+            raise forms.ValidationError('Please enter a valid phone number, e.g. +92 300 1234567.')
+        return phone
+
+
+class ContactMessageForm(forms.ModelForm):
+    """Validates the contact page form (lengths, email format) before saving."""
+
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'subject', 'message']
+
+    def clean_message(self):
+        message = self.cleaned_data['message'].strip()
+        if len(message) < 5:
+            raise forms.ValidationError('Please write a little more in your message.')
+        return message

@@ -1,137 +1,80 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Booking Confirmed!{% endblock %}
+{% block title %}Appointment booked{% endblock %}
+
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/booking.css' %}">{% endblock %}
 
 {% block content %}
-<section class="booking-hero">
-    <div class="booking-image"></div>
-    <div class="booking-content">
-        <h1 class="booking-title">Book Your Appointment</h1>
-            <p class="mb-4">
-                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
-                Approach to create <br> a enduring, sustainable and positive change in our client's life.
-            </p>
-    </div>
-</section>
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-body p-5 text-center">
-                    <!-- Success Icon -->
-                    <div class="mb-4">
-                        <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                            style="width: 100px; height: 100px;">
-                            <i class="bi bi-check-lg" style="font-size: 3rem;"></i>
-                        </div>
-                    </div>
+<div class="bk">
+  {% include "bookings/includes/booking_header.html" with current=4 %}
 
-                    <h2 class="text-success mb-3">Booking Confirmed!</h2>
-                    <p class="lead  mb-4">Your appointment has been successfully scheduled.</p>
+  <div class="container">
+    <div class="bk-success">
+      <div class="text-center mb-4">
+        <span class="bk-success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+        <h2 class="mb-2">You're booked, {{ appointment.client_name }}</h2>
+        <p class="bk-muted mb-0">Booking reference <span class="bk-ref">#{{ appointment.id }}</span>. Please keep it for your records.</p>
+      </div>
 
-                    <!-- Appointment Details -->
-                    <div class="card bg-light mb-4">
-                        <div class="card-body">
-                            <h5 class="mb-3">Appointment Details</h5>
-                            <div class="row text-start">
-                                <div class="col-md-6 mb-3">
-                                    <strong class=" d-block">Booking Reference</strong>
-                                    <span class="h5 primary-text">
-                                        <h5>#{{ appointment.id }}</h5>
-                                    </span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class=" d-block">Status</strong>
-                                    <span class="badge text-white bg-success fs-6">{{ appointment.get_status_display}}</span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class=" d-block">Counselor</strong>
-                                    <span>{{ appointment.counselor.full_name }}</span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class=" d-block">Service</strong>
-                                    <span>{{ appointment.service.name }}</span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class=" d-block">Date</strong>
-                                    <span>{{ appointment.appointment_date|date:"l, F j, Y" }}</span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong class=" d-block">Time</strong>
-                                    <span>{{ appointment.start_time|time:"g:i A" }} - {{ appointment.end_time|time:"g:i A" }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Client Info -->
-                    <div class="card bg-light mb-4">
-                        <div class="card-body">
-                            <h5 class="mb-3">Your Information</h5>
-                            <div class="row text-start">
-                                <div class="col-md-4 mb-2">
-                                    <strong class=" d-block">Name</strong>
-                                    <span>{{ appointment.client_name }}</span>
-                                </div>
-                                <div class="col-md-4 mb-2">
-                                    <strong class=" d-block">Email</strong>
-                                    <span>{{ appointment.client_email }}</span>
-                                </div>
-                                <div class="col-md-4 mb-2">
-                                    <strong class=" d-block">Phone</strong>
-                                    <span>{{ appointment.client_phone }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="toast-card" class="toast-card">
-                        <div class="toast-icon">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </div>
-
-                        <div class="toast-content">
-                            <h6>Appointment Confirmed</h6>
-                            <p>
-                                Confirmation sent to <strong>{{ appointment.client_email }}</strong><br>
-                                Please arrive 10 minutes early.
-                            </p>
-                        </div>
-
-                        <button class="toast-close" onclick="closeToast()">×</button>
-                    </div>
-
-                    <div class="mt-4">
-                        <a href="{% url 'home' %}" class="btn  btn-lg me-2">
-                            <i class="bi bi-house me-2"></i>Back to Home
-                        </a>
-                        <a href="{% url 'booking_start' %}" class="btn btn-lg">
-                            <i class="bi bi-calendar-plus me-2"></i>Book Another
-                        </a>
-                    </div>
-                </div>
-            </div>
+      <div class="bk-panel mb-4">
+        <div class="bk-review-row">
+          <i class="bi bi-calendar-event" aria-hidden="true"></i>
+          <div>
+            <span class="bk-review-label">When (Pakistan time)</span>
+            <span class="bk-review-value">{{ appointment.appointment_date|date:"l, j F Y" }}</span>
+            <span class="bk-muted small d-block">{{ appointment.start_time|time:"g:i A" }} to {{ appointment.end_time|time:"g:i A" }}</span>
+          </div>
         </div>
+        <div class="bk-review-row">
+          <i class="bi bi-person" aria-hidden="true"></i>
+          <div>
+            <span class="bk-review-label">Counselor</span>
+            <span class="bk-review-value">{{ appointment.counselor.full_name }}</span>
+          </div>
+        </div>
+        <div class="bk-review-row">
+          <i class="bi bi-chat-heart" aria-hidden="true"></i>
+          <div>
+            <span class="bk-review-label">Session</span>
+            <span class="bk-review-value">{{ appointment.service.name }}, {{ appointment.service.duration_minutes }} min</span>
+          </div>
+        </div>
+        <div class="bk-review-row">
+          <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+          <div>
+            <span class="bk-review-label">Your contact details</span>
+            <span class="bk-review-value">{{ appointment.client_email }}</span>
+            <span class="bk-muted small d-block">{{ appointment.client_phone }}</span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <a class="btn"
+             target="_blank" rel="noopener"
+             href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text={{ 'Counseling session with '|add:appointment.counselor.full_name|urlencode }}&amp;dates={{ appointment.appointment_date|date:'Ymd' }}T{{ appointment.start_time|time:'His' }}/{{ appointment.appointment_date|date:'Ymd' }}T{{ appointment.end_time|time:'His' }}&amp;ctz=Asia/Karachi&amp;details={{ appointment.service.name|urlencode }}%20%E2%80%94%20booking%20%23{{ appointment.id }}">
+            <i class="bi bi-calendar-plus me-2" aria-hidden="true"></i>Add to Google Calendar
+          </a>
+          <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer me-2" aria-hidden="true"></i>Print
+          </button>
+        </div>
+      </div>
+
+      <div class="bk-panel mb-4">
+        <h3 class="h6 fw-bold mb-3">What happens next</h3>
+        <ol class="bk-next">
+          <li>Your counselor has your booking and will see you at the time above.</li>
+          <li>Please be ready 5 to 10 minutes early.</li>
+          <li>Need to reschedule or cancel? <a href="{% url 'contact' %}">Contact us</a> with your reference number.</li>
+        </ol>
+      </div>
+
+      <div class="text-center">
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary me-2"><i class="bi bi-house me-1" aria-hidden="true"></i> Back to home</a>
+        <a href="{% url 'booking_start' %}" class="btn"><i class="bi bi-calendar-plus me-1" aria-hidden="true"></i> Book another session</a>
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %}
-{% block extra_js %}
-<script>
-    function showToast() {
-    const toast = document.getElementById('toast-card');
-    toast.classList.add('show');
-
-    setTimeout(() => {
-        closeToast();
-    }, 8000);
-}
-
-function closeToast() {
-    const toast = document.getElementById('toast-card');
-    toast.classList.remove('show');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    showToast();
-});
-</script>
 {% endblock %}
