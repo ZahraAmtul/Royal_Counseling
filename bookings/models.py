@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from datetime import datetime, timedelta, date
 
@@ -65,10 +66,6 @@ class Counselor(models.Model):
         default=True,
         help_text="Uncheck to hide this person from the booking flow (they still appear on the counselors page)."
     )
-<<<<<<< HEAD
-=======
-
->>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -80,25 +77,15 @@ class Counselor(models.Model):
     @property
     def full_name(self):
         return self.user.get_full_name() or self.user.username
-<<<<<<< HEAD
-=======
 
     @property
     def email(self):
         return self.user.email
 
->>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
     @property
     def can_be_booked(self):
         """Check if counselor can accept bookings"""
         return self.is_active and self.is_accepting_bookings and self.show_on_booking_page
-<<<<<<< HEAD
-    @property
-    def email(self):
-        return self.user.email
-=======
-
->>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
@@ -146,7 +133,25 @@ class Availability(models.Model):
         unique_together = ['counselor', 'day_of_week', 'start_time']
 
     def __str__(self):
-        return f"{self.counselor} - {self.get_day_of_week_display()} {self.start_time}-{self.end_time}"
+        return f"{self.counselor} - {self.get_day_of_week_display()} {self.start_time:%H:%M}-{self.end_time:%H:%M}"
+
+    def clean(self):
+        """Admin validation: end after start, and no overlapping windows on the same day."""
+        if self.start_time and self.end_time and self.end_time <= self.start_time:
+            raise ValidationError({'end_time': 'End time must be after the start time.'})
+        if self.counselor_id and self.start_time and self.end_time and self.day_of_week is not None:
+            overlapping = Availability.objects.filter(
+                counselor_id=self.counselor_id,
+                day_of_week=self.day_of_week,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time,
+            ).exclude(pk=self.pk)
+            if overlapping.exists():
+                other = overlapping.first()
+                raise ValidationError(
+                    f"This overlaps with existing hours on {self.get_day_of_week_display()} "
+                    f"({other.start_time:%H:%M}-{other.end_time:%H:%M})."
+                )
 
 
 class Appointment(models.Model):
@@ -190,8 +195,32 @@ class Appointment(models.Model):
     def __str__(self):
         return f"{self.client_name} with {self.counselor} on {self.appointment_date} at {self.start_time}"
 
+    def clean(self):
+        """Admin validation: the counselor can't be double-booked."""
+        if not (self.counselor_id and self.service_id and self.appointment_date and self.start_time):
+            return
+        if self.status not in ('pending', 'confirmed'):
+            return
+        start = datetime.combine(self.appointment_date, self.start_time)
+        end = start + timedelta(minutes=self.service.duration_minutes)
+        clashes = Appointment.objects.filter(
+            counselor_id=self.counselor_id,
+            appointment_date=self.appointment_date,
+            status__in=['pending', 'confirmed'],
+            start_time__lt=end.time(),
+            end_time__gt=self.start_time,
+        ).exclude(pk=self.pk)
+        if clashes.exists():
+            other = clashes.first()
+            raise ValidationError(
+                f"{self.counselor} already has an appointment from "
+                f"{other.start_time:%I:%M %p} to {other.end_time:%I:%M %p} on this date."
+            )
+
     def save(self, *args, **kwargs):
-        if self.service and self.start_time and not self.end_time:
+        # End time always follows the service length, so it stays correct
+        # when the start time or service is changed in the admin.
+        if self.service_id and self.start_time:
             start_datetime = datetime.combine(date.today(), self.start_time)
             end_datetime = start_datetime + timedelta(minutes=self.service.duration_minutes)
             self.end_time = end_datetime.time()

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Our Counselors - STU CONSULTANT{% endblock %}
+{% block title %}Our Counselors - Royal Counseling{% endblock %}
 
 {% block content %}
 <!-- Counselor Section -->
@@ -27,7 +27,7 @@
                          {{ counselor.user.first_name.0 }}{{ counselor.user.last_name.0 }}
                     </div>
                     {% endif %}
-                    <h5 class="card-title">{{ counselor.full_name }}</h5>
+                    <h5 class="card-title text-white mb-1">{{ counselor.full_name }}</h5>
                     {% if counselor.role_label %}
                     <span class="badge rounded-pill bg-light text-dark mb-2">{{ counselor.role_label }}</span>
                     {% endif %}
@@ -36,11 +36,17 @@
                         {{ counselor.bio|default:"Dedicated to helping clients achieve their mental health and wellness goals through evidence-based therapeutic approaches." }}
                     </p>
                 </div>
+                {% if counselor.show_on_booking_page %}
                 <div class="card-footer bg-transparent border-0 text-center pb-4">
-                    <a href="{% url 'booking_start' %}" class="btn btn-lg">
-                        <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+                    {% if counselor.is_accepting_bookings %}
+                    <a href="{% url 'booking_start' %}?counselor={{ counselor.id }}" class="btn btn-lg">
+                        <i class="bi bi-calendar-plus me-2"></i>Book with {{ counselor.user.first_name|default:counselor.full_name }}
                     </a>
+                    {% else %}
+                    <span class="badge rounded-pill bg-light text-dark px-3 py-2">Not taking new bookings</span>
+                    {% endif %}
                 </div>
+                {% endif %}
             </div>
         </div>
         {% empty %}

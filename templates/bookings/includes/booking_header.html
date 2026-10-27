@@ -1,0 +1,45 @@
+{% comment %}
+  Compact header + progress steps for the booking flow.
+  Usage: {% include "bookings/includes/booking_header.html" with current=2 %}
+{% endcomment %}
+<section class="booking-hero">
+    <div class="booking-image"></div>
+    <div class="booking-content">
+        <h1 class="booking-title">Book Your Appointment</h1>
+            <p class="mb-4">
+                Lead the way to Islamic Concepts of Psychology accompanying Evidence Based Electric
+                Approach to create <br> a enduring, sustainable and positive change in our client's life.
+            </p>
+    </div>
+</section>
+<header class="bk-header">
+  <div class="container">
+    {% if current < 4 %}
+    <h1 class="bk-title">Book an appointment</h1>
+    <p class="bk-subtitle"><i class="bi bi-clock-history" aria-hidden="true"></i> Takes about 2 minutes. No account needed.</p>
+    {% else %}
+    <h1 class="bk-title">Appointment confirmed</h1>
+    {% endif %}
+
+    <ol class="bk-steps" aria-label="Booking progress">
+      <li class="bk-step {% if current > 1 %}is-done{% elif current == 1 %}is-current{% endif %}" {% if current == 1 %}aria-current="step"{% endif %}>
+        {% if current > 1 and current < 4 %}<a class="bk-step-inner" href="{% url 'booking_start' %}">{% else %}<span class="bk-step-inner">{% endif %}
+          <span class="bk-step-num">{% if current > 1 %}<i class="bi bi-check-lg" aria-hidden="true"></i><span class="visually-hidden">Done:</span>{% else %}1{% endif %}</span>
+          <span class="bk-step-label">Counselor &amp; session</span>
+        {% if current > 1 and current < 4 %}</a>{% else %}</span>{% endif %}
+      </li>
+      <li class="bk-step {% if current > 2 %}is-done{% elif current == 2 %}is-current{% endif %}" {% if current == 2 %}aria-current="step"{% endif %}>
+        {% if current == 3 %}<a class="bk-step-inner" href="{% url 'booking_datetime' %}">{% else %}<span class="bk-step-inner">{% endif %}
+          <span class="bk-step-num">{% if current > 2 %}<i class="bi bi-check-lg" aria-hidden="true"></i><span class="visually-hidden">Done:</span>{% else %}2{% endif %}</span>
+          <span class="bk-step-label">Date &amp; time</span>
+        {% if current == 3 %}</a>{% else %}</span>{% endif %}
+      </li>
+      <li class="bk-step {% if current > 3 %}is-done{% elif current == 3 %}is-current{% endif %}" {% if current == 3 %}aria-current="step"{% endif %}>
+        <span class="bk-step-inner">
+          <span class="bk-step-num">{% if current > 3 %}<i class="bi bi-check-lg" aria-hidden="true"></i><span class="visually-hidden">Done:</span>{% else %}3{% endif %}</span>
+          <span class="bk-step-label">Your details</span>
+        </span>
+      </li>
+    </ol>
+  </div>
+</header>

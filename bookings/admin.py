@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from datetime import datetime, time, timedelta
 
 from django.db import models
-from django.db.models import Q
 from django.utils.safestring import mark_safe
 from .models import Counselor, Service, Availability, Appointment, ContactMessage
 
@@ -39,7 +38,8 @@ class CounselorFilteredAdmin(admin.ModelAdmin):
             if db_field.name == 'counselor':
                 kwargs['queryset'] = Counselor.objects.filter(id=request.user.counselor_profile.id)
             elif db_field.name == 'service':
-                kwargs['queryset'] = request.user.counselor_profile.services.filter(is_active=True)
+                offered = request.user.counselor_profile.services.filter(is_active=True)
+                kwargs['queryset'] = offered if offered.exists() else Service.objects.filter(is_active=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def has_module_permission(self, request):
@@ -143,12 +143,8 @@ class CounselorInline(admin.StackedInline):
     model = Counselor
     can_delete = False
     verbose_name_plural = 'Counselor Profile'
-<<<<<<< HEAD
-    fields = ['phone', 'photo', 'specialization', 'role_label', 'bio', 'services','is_active', 'is_accepting_bookings', 'show_on_booking_page']
-=======
     fields = ['phone', 'photo', 'specialization', 'role_label', 'bio', 'services', 'is_active', 'is_accepting_bookings',
               'show_on_booking_page']
->>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
     filter_horizontal = ['services']
 
 
@@ -225,12 +221,8 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Counselor)
 class CounselorAdmin(admin.ModelAdmin):
-<<<<<<< HEAD
-    list_display = ['full_name', 'email', 'specialization', 'role_label', 'booking_status', 'show_on_booking_page', 'is_active', 'created_at']
-=======
     list_display = ['full_name', 'email', 'specialization', 'role_label', 'booking_status', 'show_on_booking_page',
                     'is_active', 'created_at']
->>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
     list_filter = ['is_active', 'is_accepting_bookings', 'show_on_booking_page', 'services']
     search_fields = ['user__first_name', 'user__last_name', 'user__email', 'specialization']
     filter_horizontal = ['services']
@@ -239,21 +231,6 @@ class CounselorAdmin(admin.ModelAdmin):
 
     # Custom action to toggle booking status
     actions = ['enable_bookings', 'disable_bookings']
-<<<<<<< HEAD
-    
-    fieldsets = (
-    ('User Account', {'fields': ('user',)}),
-    ('Profile Information', {'fields': ('phone', 'photo', 'specialization', 'role_label', 'bio')}),
-    ('Services Offered', {'fields': ('services',)}),
-    ('Booking Status', {
-        'fields': ('is_active', 'is_accepting_bookings', 'show_on_booking_page'),
-        'description': 'Control whether this counselor appears on the site and can accept bookings.'
-    }),)
-
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
-        # Counselors can't hide themselves from booking or give themselves a role label
-=======
 
     fieldsets = (
         ('User Account', {'fields': ('user',)}),
@@ -267,7 +244,6 @@ class CounselorAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             # Counselors can't hide themselves from booking or give themselves a role label
->>>>>>> 7620107abab9081f182b73c5c094b862d1d80396
             return ['user', 'services', 'is_accepting_bookings', 'show_on_booking_page', 'role_label']
         return []
 
@@ -353,11 +329,17 @@ class AvailabilityAdmin(FriendlyDateTimeMixin, CounselorFilteredAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(FriendlyDateTimeMixin, CounselorFilteredAdmin):
-    list_display = ['client_name', 'counselor', 'service', 'appointment_date', 'start_time', 'status', 'created_at']
+    list_display = ['client_name', 'counselor', 'service', 'appointment_date', 'time_range', 'status', 'created_at']
     list_filter = ['status', 'appointment_date']
+    list_select_related = ['counselor__user', 'service']
     search_fields = ['client_name', 'client_email', 'client_phone']
     date_hierarchy = 'appointment_date'
-    readonly_fields = ['created_at', 'updated_at']
+    # End time is calculated from the service length when saved
+    readonly_fields = ['end_time', 'created_at', 'updated_at']
+
+    @admin.display(description='Time', ordering='start_time')
+    def time_range(self, obj):
+        return f"{time_label(obj.start_time)} - {time_label(obj.end_time)}"
 
     fieldsets = (
         ('Client Information', {
@@ -377,62 +359,40 @@ class AppointmentAdmin(FriendlyDateTimeMixin, CounselorFilteredAdmin):
             return ['status', 'counselor', 'service', 'appointment_date']
         return ['status', 'service', 'appointment_date']
 
-@admin.register(ContactMessage)
-class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "email",
-        "subject",
-        "created_at",
-        "is_responded",
-    )
-
-    list_filter = ("is_responded", "created_at")
-    search_fields = ("name", "email", "subject", "message")
-    list_editable = ("is_responded",)
-    readonly_fields = ("created_at",)
-    ordering = ("-created_at",)
-
-    fieldsets = (
-        ("Contact Details", {
-            "fields": ("name", "email", "subject", "message", "created_at")
-        }),
-        ("Response Tracking", {
-            "fields": ("is_responded", "response")
-        }),
-    )
-
-
+# -----------------------------------------------------------------------------
+# Contact Messages (registered once, here only)
+# -----------------------------------------------------------------------------
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "email",
-        "subject",
-        "created_at",
-        "is_responded",
-    )
-
-    list_filter = ("is_responded", "created_at")
-    search_fields = ("name", "email", "subject", "message")
-    list_editable = ("is_responded",)
-    readonly_fields = ("created_at",)
-    ordering = ("-created_at",)
+    list_display = ['name', 'email', 'subject', 'created_at', 'is_responded']
+    list_filter = ['is_responded', 'created_at']
+    search_fields = ['name', 'email', 'subject', 'message']
+    list_editable = ['is_responded']
+    readonly_fields = ['name', 'email', 'subject', 'message', 'created_at']
+    ordering = ['-created_at']
 
     fieldsets = (
-        ("Contact Details", {
-            "fields": ("name", "email", "subject", "message", "created_at")
-        }),
-        ("Response Tracking", {
-            "fields": ("is_responded", "response")
-        }),
+        ('Message', {'fields': ('name', 'email', 'subject', 'message', 'created_at')}),
+        ('Response tracking', {'fields': ('is_responded', 'response')}),
     )
 
+    # Superadmin only: counselors don't see the site inbox
+    def has_module_permission(self, request):
+        return request.user.is_superuser
 
-# -----------------------------------------------------------------------------
-# Admin Site Customization
-# -----------------------------------------------------------------------------
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False  # messages come from the website
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
 admin.site.site_header = "STU Counseling Admin"
 admin.site.site_title = "STU Admin"
